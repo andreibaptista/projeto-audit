@@ -1,0 +1,395 @@
+<ui:composition
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:ui="http://java.sun.com/jsf/facelets"
+        xmlns:h="http://java.sun.com/jsf/html"
+        xmlns:f="http://java.sun.com/jsf/core"
+        xmlns:p="http://primefaces.org/ui">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <h1>
+            AGENDA
+        </h1>
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+        <div class="box box-primary" style="max-width:95%">
+
+            <div class="box-header with-border">
+                <h3 class="box-title">#{agendaBean.listando ? i18n.ListaAtendentes : i18n.AgendaAtendentes}</h3>
+                <h4><b>#{agendaBean.listando ? '' : agendaBean.atendente.pessoa.nome}</b></h4>
+            </div>
+
+            <div class="box-body">
+                <!--LISTAGEM-->
+                <p:outputPanel rendered="#{agendaBean.listando}">
+                    <div class="row">
+                        <div class="col-xs-5">
+                            <div class="form-group">
+                                <label for="nomePesq">#{i18n.Nome}:</label>
+                                <p:inputText id="nomePesq" value="#{agendaBean.nomePesq}" styleClass="form-control"
+                                             placeholder="#{i18n.NomeAtendente}">
+                                    <p:ajax update="dtAtendente" event="keyup"
+                                            listener="#{agendaBean.pesquisaAtendentes}"/>
+                                </p:inputText>
+                            </div>
+                        </div>
+                    </div>
+                    <br/>
+
+                    <p:dataTable id="dtAtendente" value="#{agendaBean.atendentes}"
+                                 var="atendente" styleClass="table table-bordered table-hover dataTable"
+                                 paginator="true"
+                                 rows="10"
+                                 emptyMessage="#{i18n.NaoHaRegistros}"
+                                 paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}">
+
+                        <p:column headerText="#{i18n.Nome}">
+                            <h:outputText value="#{atendente.pessoa.nome}"/>
+                        </p:column>
+
+                        <p:column headerText="#{i18n.Acao}" style="text-align: center;" width="200">
+                            <p:commandLink actionListener="#{agendaBean.editar(atendente)}" update="form:pnlContent"
+                                           styleClass="btn btn-default">
+                                <i class="fa fa-arrow-circle-right"/> <span></span>
+                            </p:commandLink>
+                        </p:column>
+                    </p:dataTable>
+                </p:outputPanel>
+                <!--CADASTRO-->
+                <p:outputPanel
+                        rendered="#{agendaBean.cadastrando or agendaBean.editando or agendaBean.visualizando}">
+
+                    <p:commandLink update="dialogBloquear" immediate="true"
+                                   actionListener="#{agendaBean.novoBloqueioAgenda(agendaBean.atendente)}">
+                        <button class="btn btn-default btn-sm">#{i18n.BloquearDatas}</button>
+                    </p:commandLink>
+
+                    <p:schedule id="agendaCalendario" value="#{agendaBean.eventModel}" widgetVar="calendario"
+                                view="month"
+                                draggable="false" showWeekends="false" rightHeaderTemplate="month">
+
+                        <p:ajax event="dateSelect" listener="#{agendaBean.onDateSelect}"
+                                update="dialogEvento, rpAgendaItems"
+                                oncomplete="PF('eventDialog').show();"/>
+                        <p:ajax event="eventSelect" listener="#{agendaBean.onEventSelect}"
+                                update="dialogEvento, rpAgendaItems"
+                                oncomplete="PF('eventDialog').show();"/>
+
+                    </p:schedule>
+                    <h4><b>#{i18n.Legendas}:</b></h4>
+                    <label class="legenda" style="background-color:#DDDDDD">#{i18n.Indisponivel}</label>
+                    <label class="legenda" style="background-color:#9FFFF8">#{i18n.Hoje}</label>
+                    <label class="legenda"
+                           style="background-color:#073763;color:white">#{i18n.AtendimentoAgendado}</label>
+                    <label class="legenda"
+                           style="background-color:#134F5C;color:white">#{i18n.AtendimentoNaoAgendado}</label>
+                    <!--DIALOG BLOQUEIO-->
+                    <p:dialog id="dialogBloquear" widgetVar="bloquearData" header="#{i18n.BloquearDatas}"
+                              dynamic="true" width="50%" height="50%">
+                        <div class="box box-warning">
+                            <div class="box box-warning">
+                                <div class="box-header with-border">
+                                    <h3 class="box-title">#{i18n.NovoBloqueio}</h3>
+                                </div>
+                                <div class="box-body">
+                                    <p:outputPanel id="opBloqueio">
+                                        <p:messages id="msgDialogBloqueio" showDetail="true" showSummary="false"
+                                                    showIcon="false"
+                                                    globalOnly="true"/>
+                                        <div class="row">
+                                            <div class="col-xs-3">
+                                                <div class="form-group">
+                                                    <label for="dataInicial">#{i18n.DataInicial}*</label>
+                                                    <p:calendar id="dataInicial" label="#{i18n.DataInicial}"
+                                                                pattern="dd/MM/yyyy"
+                                                                value="#{agendaBean.bloqueioAgenda.dataInicio}"
+                                                                mask="99/99/9999"
+                                                                mindate="#{agendaBean.minDate()}"
+                                                                disabledWeekends="true"
+                                                                readonlyInput="true"
+                                                                required="true"
+                                                                requiredMessage="#{i18n.CampoObrigatorio}"
+                                                                navigator="true" locale="pt_BR">
+                                                        <p:ajax event="dateSelect"
+                                                                listener="#{agendaBean.setDataInicial}"
+                                                                update="form:dataInicial"/>
+                                                    </p:calendar>
+                                                    <p:message for="dataInicial" display="text" showSummary="false"
+                                                               showDetail="true"/>
+                                                </div>
+                                            </div>
+                                            <div class="col-xs-3">
+                                                <div class="form-group">
+                                                    <label for="dataFinal">#{i18n.DataFinal}*</label>
+                                                    <p:calendar id="dataFinal" label="#{i18n.DataFinal}"
+                                                                pattern="dd/MM/yyyy"
+                                                                value="#{agendaBean.bloqueioAgenda.dataFim}"
+                                                                mask="99/99/9999"
+                                                                mindate="#{agendaBean.minDate()}"
+                                                                disabledWeekends="true"
+                                                                requiredMessage="#{i18n.CampoObrigatorio}"
+                                                                readonlyInput="true" required="true"
+                                                                navigator="true" locale="pt_BR">
+                                                        <p:ajax event="dateSelect"
+                                                                listener="#{agendaBean.setDataFinal}"
+                                                                update="form:dataFinal"/>
+                                                    </p:calendar>
+                                                    <p:message for="dataFinal" display="text" showSummary="false"
+                                                               showDetail="true"/>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <p:dataTable id="dtDatasBloqueadas"
+                                                     value="#{agendaBean.bloqueioAgendas}"
+                                                     var="bloqueioAgenda"
+                                                     styleClass="table table-bordered table-hover dataTable"
+                                                     paginator="false"
+                                                     rows="10"
+                                                     rendered="#{not empty agendaBean.bloqueioAgendas}"
+                                                     emptyMessage="#{i18n.NaoHaRegistros}">
+
+                                            <p:column headerText="#{i18n.DataInicial}">
+                                                <h:outputText value="#{bloqueioAgenda.dataInicio}">
+                                                    <f:convertDateTime pattern="dd/MM/yyyy"/>
+                                                </h:outputText>
+                                            </p:column>
+                                            <p:column headerText="#{i18n.DataFinal}">
+                                                <h:outputText value="#{bloqueioAgenda.dataFim}">
+                                                    <f:convertDateTime pattern="dd/MM/yyyy"/>
+                                                </h:outputText>
+                                            </p:column>
+
+                                            <p:column headerText="#{i18n.Acao}" style="text-align: center;" width="100">
+                                                <p:commandLink onclick="PF('confirmationBloqueioAgenda').show();"
+                                                               global="false"
+                                                               ajax="true"
+                                                               process="@this">
+                                                    <button class="btn btn-danger btn-sm">#{i18n.Excluir}</button>
+                                                    <f:setPropertyActionListener
+                                                            target="#{agendaBean.bloqueioAgenda}"
+                                                            value="#{bloqueioAgenda}"/>
+                                                </p:commandLink>
+                                            </p:column>
+                                        </p:dataTable>
+                                    </p:outputPanel>
+                                </div>
+                                <div class="box-footer">
+                                    <p:commandLink id="btnBloqueioSalvar"
+                                                   actionListener="#{agendaBean.salvarBloqueioAgenda}"
+                                                   process="@this, opBloqueio"
+                                                   update="opBloqueio"
+                                                   oncomplete="PF('calendario').update();">
+                                        <button class="btn btn-success pull-right">#{i18n.Salvar}</button>
+                                    </p:commandLink>
+                                </div>
+                            </div>
+                        </div>
+                    </p:dialog>
+                    <!--DIALOG EVENTO-->
+                    <p:dialog id="dialogEvento" widgetVar="eventDialog" header="#{agendaBean.agenda.dataExtenso}"
+                              dynamic="true" width="50%" height="50%">
+                        <div class="#{agendaBean.diaPermitido ? 'box box-primary' : 'box box-danger'}">
+                            <div class="#{agendaBean.diaPermitido ? 'box box-primary' : 'box box-danger'}">
+                                <div class="box-header with-border">
+                                    <h3 class="box-title">#{agendaBean.diaPermitido ? i18n.PeriodosHorariosDisponiveisAtendimento : i18n.Aviso}</h3>
+                                </div>
+                                <div class="box-body">
+                                    <p:messages id="msgDialogEvento" showDetail="true" showSummary="false"
+                                                showIcon="false"
+                                                globalOnly="true"/>
+                                    <h:outputLabel style="color:red;font-weight: bold;"
+                                                   value="#{i18n.mensagemAvisoDataBloqueada}"
+                                                   rendered="#{not agendaBean.diaPermitido}"/>
+                                    <p:outputPanel id="rpAgendaItems" rendered="#{agendaBean.diaPermitido}">
+                                        <p:repeat value="#{agendaBean.agendaItems}" var="agendaItem">
+                                            <div class="row">
+                                                <div class="col-xs-2">
+                                                    <label>#{i18n.Inicio}:</label>
+                                                    <div class="form-group">
+                                                        <h:selectOneMenu value="#{agendaItem.horarioInicio}"
+                                                                         required="false" styleClass="form-control"
+                                                                         converter="JSFUniversalConverter"
+                                                                         disabled="#{agendaItem.id != null}">
+                                                            <f:selectItems
+                                                                    value="#{agendaBean.horariosInicio}"
+                                                                    var="item"
+                                                                    itemValue="#{item}" itemLabel="#{item.horario}"/>
+                                                            <p:ajax listener="#{agendaBean.setHorariosAgendaItem()}"
+                                                                    update="form:rpAgendaItems"/>
+                                                        </h:selectOneMenu>
+                                                    </div>
+                                                </div>
+                                                <div class="col-xs-2">
+                                                    <label>#{i18n.Fim}:</label>
+                                                    <div class="form-group">
+                                                        <h:selectOneMenu value="#{agendaItem.horarioFim}"
+                                                                         disabled="#{agendaItem.id != null}"
+                                                                         required="false" styleClass="form-control"
+                                                                         converter="JSFUniversalConverter">
+                                                            <f:selectItems
+                                                                    value="#{agendaBean.horariosFim}"
+                                                                    var="item"
+                                                                    itemValue="#{item}" itemLabel="#{item.horario}"/>
+                                                            <p:ajax listener="#{agendaBean.setHorariosAgendaItem()}"
+                                                                    update="form:rpAgendaItems"/>
+                                                        </h:selectOneMenu>
+                                                    </div>
+                                                </div>
+                                                <!--<div class="col-xs-3">
+                                                    <label>#{i18n.FormaAtendimento}:</label>
+                                                    <div class="form-group">
+                                                        <h:selectOneMenu value="#{agendaItem.tipoAgendamento}"
+                                                                         styleClass="form-control"
+                                                                         required="false"
+                                                                         disabled="#{agendaItem.id != null}">
+                                                            <f:selectItems
+                                                                    value="#{agendaBean.tipoAgendamentos}"
+                                                                    var="item"
+                                                                    itemValue="#{item}" itemLabel="#{item.value}"/>
+                                                            <p:ajax/>
+                                                        </h:selectOneMenu>
+                                                    </div>
+                                                </div>-->
+                                                <div class="col-xs-2">
+                                                    <p:commandLink onclick="PF('confirmation').show();" global="false"
+                                                                   ajax="true"
+                                                                   process="@this, form:replicarPeriodo, form:replicarAtendente">
+                                                        <button class="btn btn-danger btn-sm">#{i18n.Excluir}</button>
+                                                        <f:setPropertyActionListener target="#{agendaBean.agendaItem}"
+                                                                                     value="#{agendaItem}"/>
+                                                    </p:commandLink>
+                                                </div>
+                                            </div>
+                                            <br/>
+                                        </p:repeat>
+
+                                        <p:commandLink id="btnDialogAdicionar"
+                                                       disabled="#{agendaBean.novoHorarioBloqueado()}"
+                                                       actionListener="#{agendaBean.novoAgendaItem()}"
+                                                       update="rpAgendaItems" process="@this"
+                                                       immediate="true">
+                                            <button class="btn btn-primary"
+                                                    disabled="#{agendaBean.novoHorarioBloqueado() ? 'disabled' : ''}">#{i18n.CriarNovo}</button>
+                                        </p:commandLink>
+                                    </p:outputPanel>
+                                    <br/>
+                                    <br/>
+                                    <div class="row">
+                                        <div class="col-xs-4">
+                                            <p:selectBooleanCheckbox id="atendimentoNaoAgendado"
+                                                                     value="#{agendaBean.atendimentoNaoAgendado}"/>
+                                            <p:outputLabel style="padding-left: 5px" for="atendimentoNaoAgendado"
+                                                           value="#{i18n.AtendimentoNaoAgendado}"/>
+                                        </div>
+                                    </div>
+                                    <br/>
+                                    <div class="row">
+                                        <div class="col-xs-4">
+                                            <label>#{i18n.ReplicarParaPeriodo}:</label>
+                                            <div class="form-group">
+                                                <h:selectOneMenu id="replicarPeriodo" styleClass="form-control"
+                                                                 value="#{agendaBean.periodoEnum}">
+                                                    <f:selectItem itemValue="" itemLabel="#{i18n.Nenhum}"/>
+                                                    <f:selectItems
+                                                            value="#{agendaBean.periodos}"
+                                                            var="item"
+                                                            itemValue="#{item}" itemLabel="#{item.value}"/>
+                                                </h:selectOneMenu>
+                                            </div>
+                                        </div>
+                                        <div class="col-xs-4">
+                                            <label for="replicarAtendente">#{i18n.ReplicarParaAtendente}:</label>
+                                            <div class="form-group">
+                                                <p:selectCheckboxMenu id="replicarAtendente"
+                                                                      value="#{agendaBean.atendentesSelecionados}"
+                                                                      label="#{i18n.Atendentes}"
+                                                                      panelStyle="width:350px" required="false"
+                                                                      converter="JSFUniversalConverter">
+                                                    <f:selectItems
+                                                            value="#{agendaBean.atendentesDisponiveis}"
+                                                            var="atend"
+                                                            itemValue="#{atend}" itemLabel="#{atend.pessoa.nome}"/>
+                                                    <p:ajax/>
+                                                </p:selectCheckboxMenu>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div class="box-footer">
+                                    <p:commandLink actionListener="#{agendaBean.salvarAgendaItem}"
+                                                   rendered="#{agendaBean.diaPermitido}"
+                                                   update="form:messages, rpAgendaItems, atendimentoNaoAgendado, replicarAtendente, replicarPeriodo" process="@this, rpAgendaItems, atendimentoNaoAgendado, replicarAtendente, replicarPeriodo"
+                                                   oncomplete="PF('calendario').update();">
+                                        <button class="btn btn-success pull-right">#{i18n.Salvar}</button>
+                                    </p:commandLink>
+
+                                    <p:commandLink rendered="#{not agendaBean.diaPermitido}"
+                                                   oncomplete="PF('eventDialog').hide();">
+                                        <button class="btn btn-default pull-right">#{i18n.Ok}</button>
+                                    </p:commandLink>
+                                </div>
+                            </div>
+                        </div>
+                    </p:dialog>
+                    <p:confirmDialog message="#{i18n.ConfirmacaoExclusao}" width="400" header="#{i18n.DialogExcluir}"
+                                     severity="alert" widgetVar="confirmation">
+                        <p:commandButton value="#{i18n.Sim}" onclick="PF('confirmation').hide();"
+                                         actionListener="#{agendaBean.setAgendaItemExclusao()}" immediate="true"
+                                         ajax="true"
+                                         process="@this, form:replicarPeriodo, form:replicarAtendente"
+                                         update="rpAgendaItems, form:msgDialogEvento,form:replicarPeriodo, form:replicarAtendente, form:atendimentoNaoAgendado"
+                                         oncomplete="PF('calendario').update();"/>
+                        <p:commandButton value="#{i18n.Nao}" onclick="PF('confirmation').hide();return false;"
+                                         ajax="false"
+                                         immediate="true"/>
+                    </p:confirmDialog>
+                    <p:confirmDialog message="#{i18n.ConfirmacaoExclusao}" width="400" header="#{i18n.DialogExcluir}"
+                                     severity="alert" widgetVar="confirmationBloqueioAgenda">
+                        <p:commandButton value="#{i18n.Sim}" onclick="PF('confirmationBloqueioAgenda').hide();"
+                                         actionListener="#{agendaBean.excluirBloqueioAgenda}" immediate="true"
+                                         ajax="true"
+                                         process="@this"
+                                         update="opBloqueio" oncomplete="PF('calendario').update();"/>
+                        <p:commandButton value="#{i18n.Nao}"
+                                         onclick="PF('confirmationBloqueioAgenda').hide();return false;"
+                                         ajax="false"
+                                         immediate="true"/>
+                    </p:confirmDialog>
+                    <p:confirmDialog id="confirmarSalvarDlg" message="#{agendaBean.mensagemRetorno}" width="80%"
+                                     header="#{i18n.DialogReplicar}"
+                                     severity="alert" widgetVar="confirmarSalvarDialog">
+                        <p:commandButton value="#{i18n.Sim}" onclick="PF('confirmarSalvarDialog').hide();"
+                                         actionListener="#{agendaBean.salvarAgendaItem}" immediate="true" ajax="true"
+                                         process="@this"
+                                         update="form:pnlContent"
+                                         oncomplete="PF('calendario').update();"/>
+                        <p:commandButton value="#{i18n.Nao}" process="@this"
+                                         actionListener="#{agendaBean.setConfirmarSalvar(false)}"
+                                         onclick="PF('confirmarSalvarDialog').hide();"
+                                         ajax="true"
+                                         immediate="true"/>
+                    </p:confirmDialog>
+                </p:outputPanel>
+            </div>
+
+            <div class="box-footer">
+                <p:commandLink actionListener="#{agendaBean.cancelar()}" process="@this" ajax="true"
+                               update="form:pnlContent"
+                               rendered="#{agendaBean.cadastrando or agendaBean.editando or agendaBean.visualizando}">
+                    <button class="btn btn-default">#{i18n.Voltar}</button>
+                </p:commandLink>
+
+                <p:commandLink actionListener="#{agendaBean.gravar()}" update="form:pnlContent"
+                               rendered="false">
+                    <button class="btn btn-success pull-right">#{i18n.Salvar}</button>
+                </p:commandLink>
+            </div>
+        </div><!-- /.content-wrapper -->
+    </section><!-- /.content -->
+
+
+</ui:composition>
+

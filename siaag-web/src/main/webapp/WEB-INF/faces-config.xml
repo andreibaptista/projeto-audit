@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<faces-config version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-facesconfig_2_2.xsd">
+    <validator>
+        <validator-id>CPFCNPJValidator</validator-id>
+        <validator-class>br.gov.pa.igeprev.siaag.utils.validator.CPFCNPJValidator</validator-class>
+    </validator>
+    <validator>
+        <validator-id>EmailValidator</validator-id>
+        <validator-class>br.gov.pa.igeprev.siaag.utils.validator.EmailValidator</validator-class>
+    </validator>
+    <validator>
+        <validator-id>NomeValidator</validator-id>
+        <validator-class>br.gov.pa.igeprev.siaag.utils.validator.NomeValidator</validator-class>
+    </validator>
+    <validator>
+        <validator-id>DataNascimentoValidator</validator-id>
+        <validator-class>br.gov.pa.igeprev.siaag.utils.validator.DataNascimentoValidator</validator-class>
+    </validator>
+    <converter>
+        <converter-id>InputConverter</converter-id>
+        <converter-class>br.gov.pa.igeprev.siaag.utils.converter.InputConverter</converter-class>
+    </converter>
+    <converter>
+        <converter-id>CPFCNPJConverter</converter-id>
+        <converter-class>br.gov.pa.igeprev.siaag.utils.converter.CPFCNPJConverter</converter-class>
+    </converter>
+    <converter>
+        <converter-id>JSFUniversalConverter</converter-id>
+        <converter-class>br.gov.pa.igeprev.siaag.utils.converter.JSFUniversalConverter</converter-class>
+    </converter>
+    <application>
+        <message-bundle>
+            br.gov.pa.igeprev.siaag.i18n.pt_BR
+        </message-bundle>
+        <locale-config>
+            <default-locale>pt_BR</default-locale>
+        </locale-config>
+        <resource-bundle>
+            <base-name>br.gov.pa.igeprev.siaag.i18n.pt_BR</base-name>
+            <var>i18n</var>
+        </resource-bundle>
+    </application>
+</faces-config>

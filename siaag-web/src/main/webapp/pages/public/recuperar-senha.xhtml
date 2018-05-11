@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:pe="http://primefaces.org/ui/extensions"
+      xmlns:p="http://primefaces.org/ui">
+
+<h:head>
+    <title>SIAAG</title>
+    <!-- Bootstrap core CSS -->
+
+    <link rel="stylesheet" type="text/css"
+          href="#{request.contextPath}/resources/bootstrap/css/bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css"
+          href="#{request.contextPath}/resources/dist/css/AdminLTE.min.css"/>
+    <link rel="stylesheet" type="text/css"
+          href="#{request.contextPath}/resources/dist/css/skins/skin-blue.min.css"/>
+
+    <link rel="stylesheet" href="#{request.contextPath}/resources/dist/css/skins/_all-skins.min.css"/>
+
+    <script src="https://pagead2.googlesyndication.com/pub-config/r20160913/ca-pub-4495360934352473.js"/>
+
+
+    <link rel="stylesheet" type="text/css"
+          href="#{request.contextPath}/resources/default.css"/>
+
+    <h:outputScript library="js" name="locale-primefaces.js"/>
+</h:head>
+<h:body class="hold-transition skin-blue sidebar-mini">
+    <script type="text/javascript">
+        var t;
+
+        function startTimer() {
+            t = setTimeout("PF('statusDialog').show()", 1100);
+        }
+
+        function stopTimer() {
+            clearTimeout(t);
+        }
+
+        function resetLocalStorage() {
+            localStorage.clear();
+        }
+    </script>
+    <p:ajaxStatus onstart="startTimer();"
+                  onsuccess="PF('statusDialog').hide(); stopTimer();"
+                  onerror="PF('errorDialog').show(); stopTimer(); PF('statusDialog').hide()"/>
+
+    <p:dialog modal="true" widgetVar="statusDialog" header="#{i18n.Carregando}"
+              draggable="false" closable="false" position="center">
+        <p:graphicImage value="/resources/img/loading-cascade.gif"/>
+    </p:dialog>
+    <p:dialog modal="true" widgetVar="errorDialog" position="center"
+              header="#{i18n.OcorreuUmErro}" draggable="false" closable="false">
+        #{i18n.PressioneF5RecarregarPagina}
+    </p:dialog>
+    <h:form id="form" enctype="multipart/form-data">
+        <!-- Main Header -->
+        <header class="main-header">
+            <ui:include src="/pages/template/header-public.xhtml"/>
+        </header>
+        <br/><br/>
+        <!-- Content Wrapper. Contains page content -->
+        <div id="box" style="padding-left: 1%">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">#{i18n.RecuperarSenha}</h3>
+                </div>
+                <div class="box-body">
+                    <p:messages showIcon="false" showSummary="false" showDetail="true" globalOnly="false"/>
+                    <p:focus context="form:pnlRecuperarSenha"/>
+                    <p:outputPanel id="pnlRecuperarSenha">
+                        <div class="row">
+                            <div class="col-xs-2">
+                                <div class="form-group">
+                                    <label for="cpfRecuperacao">#{i18n.CPF}*</label>
+                                    <p:inputMask id="cpfRecuperacao" styleClass="form-control" tabindex="1"
+                                                 value="#{usuarioExternoBean.cpfRecuperacao}" mask="999.999.999-99"
+                                                 converter="InputConverter" validator="CPFCNPJValidator"
+                                                 required="true" autocomplete="false"
+                                                 disabled="#{usuarioExternoBean.podeRecuperarSenha}"
+                                                 requiredMessage="#{i18n.CampoObrigatorio}">
+                                        <p:ajax update="btnSalvar, senhas" event="keyup"/>
+                                    </p:inputMask>
+                                    <p:message for="cpfRecuperacao" display="text" showSummary="false"/>
+                                </div>
+                            </div>
+                            <div class="col-xs-5">
+                                <div class="form-group">
+                                    <label for="nomeRecuperacao">#{i18n.Nome}*</label>
+                                    <p:inputText styleClass="form-control" id="nomeRecuperacao" tabindex="2"
+                                                 value="#{usuarioExternoBean.nomeRecuperacao}" required="true"
+                                                 validator="NomeValidator"
+                                                 disabled="#{usuarioExternoBean.podeRecuperarSenha}"
+                                                 requiredMessage="#{i18n.CampoObrigatorio}" maxlength="150">
+                                        <p:ajax update="msgNome, btnSalvar, senhas" event="keyup"/>
+                                    </p:inputText>
+                                    <p:message for="nomeRecuperacao" id="msgNome" display="text" showSummary="false"
+                                               showDetail="true"/>
+                                </div>
+                            </div>
+                            <div class="col-xs-2">
+                                <div class="form-group">
+                                    <label for="dataNascimento">#{i18n.DataNascimento}*</label>
+                                    <p:calendar id="dataNascimento" label="#{i18n.DataNascimento}" tabindex="3"
+                                                pattern="dd/MM/yyyy"
+                                                value="#{usuarioExternoBean.dataNascimentoRecuperacao}" required="true"
+                                                mask="99/99/9999" yearRange="c-150:c+150"
+                                                mindate="#{usuarioExternoBean.minDate()}"
+                                                disabled="#{usuarioExternoBean.podeRecuperarSenha}"
+                                                maxdate="#{usuarioExternoBean.currentDate()}" navigator="true"
+                                                locale="pt_BR" requiredMessage="#{i18n.CampoObrigatorio}"
+                                                validator="DataNascimentoValidator">
+                                        <p:ajax update="btnSalvar, senhas"/>
+                                    </p:calendar>
+                                    <p:message for="dataNascimento" display="text" showSummary="false"
+                                               showDetail="true"/>
+
+                                </div>
+                            </div>
+                        </div>
+                    </p:outputPanel>
+                    <p:outputPanel id="senhas">
+                        <p:outputPanel rendered="#{usuarioExternoBean.podeRecuperarSenha}">
+                            <div class="row">
+                                <div class="col-xs-4">
+                                    <div class="form-group">
+                                        <label for="senha">#{i18n.NovaSenha}*</label>
+                                        <p:password id="senha" styleClass="form-control" tabindex="5"
+                                                    value="#{usuarioExternoBean.novaSenha}" required="true"
+                                                    maxlength="50"
+                                                    requiredMessage="#{i18n.CampoObrigatorio}"
+                                                    validatorMessage="#{i18n.validacaoSenhaMenor6Caracteres}">
+                                            <f:validateLength minimum="6"/>
+                                            <p:ajax update="msgSenha" event="keyup"/>
+                                        </p:password>
+                                        <p:message for="senha" id="msgSenha" display="text" showSummary="false"
+                                                   showDetail="true"/>
+                                    </div>
+                                </div>
+                                <div class="col-xs-4">
+                                    <div class="form-group">
+                                        <label for="confimarSenha">#{i18n.ConfirmarNovaSenha}*</label>
+                                        <p:password id="confimarSenha" styleClass="form-control" tabindex="6"
+                                                    value="#{usuarioExternoBean.confirmacaoNovaSenha}" required="true"
+                                                    maxlength="50"
+                                                    requiredMessage="#{i18n.CampoObrigatorio}"
+                                                    validatorMessage="#{i18n.validacaoSenhaMenor6Caracteres}">
+                                            <f:validateLength minimum="6"/>
+                                            <p:ajax update="msgConfirmarSenha, btnSalvar" event="keyup"/>
+                                        </p:password>
+                                        <p:message for="confimarSenha" id="msgConfirmarSenha" display="text"
+                                                   showSummary="false"
+                                                   showDetail="true"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <div class="box-footer">
+                        <p:commandLink actionListener="#{usuarioExternoBean.redirect('/siaag/login')}"
+                                       immediate="true" onclick="resetLocalStorage()">
+                            <button class="btn btn-default">#{i18n.Voltar}</button>
+                        </p:commandLink>
+
+                        <p:commandLink id="btnSalvar" actionListener="#{usuarioExternoBean.recuperarSenha()}"
+                                       onclick="resetLocalStorage()"
+                                       update="@form"
+                                       rendered="#{usuarioExternoBean.podeRecuperarSenha}">
+                            <button class="btn btn-success pull-right" tabindex="7">#{i18n.Salvar}</button>
+                        </p:commandLink>
+
+                        <p:commandLink id="btnVerificarDados" rendered="#{not usuarioExternoBean.podeRecuperarSenha}"
+                                       actionListener="#{usuarioExternoBean.validacaoCamposRecuperacaoSenha()}"
+                                       update="@form" >
+                            <button id="bbtnVerificarDados" class="btn btn-primary pull-right" tabindex="4">#{i18n.VerificacaoDados}</button>
+                        </p:commandLink>
+
+                        <p:commandLink actionListener="#{usuarioExternoBean.limpar()}"
+                                       immediate="true" update="@form">
+                            <button class="btn btn-default pull-right">#{i18n.Limpar}</button>
+                        </p:commandLink>
+                    </div>
+                </div><!-- /.content-wrapper -->
+            </div>
+        </div><!-- ./wrapper -->
+    </h:form>
+    <script type="text/javascript">
+        $('form').off('keypress.disableAutoSubmitOnEnter').on('keypress.disableAutoSubmitOnEnter', function (event) {
+            if (event.which === $.ui.keyCode.ENTER) {
+                if ($(event.target).is(':input:not(textarea,:button,:submit,:reset)')) {
+                    event.preventDefault();
+                }
+            }
+        });
+    </script>
+    <!-- REQUIRED JS SCRIPTS -->
+    <script type="text/javascript"
+            src="#{request.contextPath}/resources/bootstrap/js/bootstrap.min.js"></script> <!-- Correio -->
+    <script type="text/javascript" src="#{request.contextPath}/resources/dist/js/app.min.js"></script> <!-- Correio -->
+</h:body>
+
+</html>

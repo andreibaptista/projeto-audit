@@ -1,0 +1,62 @@
+<ui:composition
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+        xmlns:p="http://primefaces.org/ui"
+        xmlns:f="http://java.sun.com/jsf/core">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <h1>
+            USUÁRIO
+            <!-- <small>Preferências do usuário</small> -->
+        </h1>
+
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h3 class="box-title">#{usuarioBean.listando ? i18n.ListaUsuario : i18n.CadastroUsuario}</h3>
+            </div>
+
+            <div class="box-body">
+                <ui:include src="/pages/includes/include-usuario.xhtml"/>
+                <p:confirmDialog message="#{i18n.ConfirmacaoExclusao}" width="400" header="#{i18n.DialogExcluir}"
+                                 severity="alert" widgetVar="confirmation">
+                    <p:commandButton value="#{i18n.Sim}" onclick="PF('confirmation').hide();"
+                                     actionListener="#{usuarioBean.excluir}" immediate="true" ajax="true" process="@this"
+                                     update="form:pnlContent"/>
+                    <p:commandButton value="#{i18n.Nao}" onclick="PF('confirmation').hide();return false;" ajax="false"
+                                     immediate="true"/>
+                </p:confirmDialog>
+            </div>
+
+            <div class="box-footer">
+                <p:commandLink actionListener="#{usuarioBean.cancelar()}" process="@this" ajax="true" update="form:pnlContent"
+                               rendered="#{segurancaBean.usuarioLogado.perfil.id == 1 and (usuarioBean.cadastrando or usuarioBean.editando or usuarioBean.visualizando)}">
+                    <button class="btn btn-default">#{i18n.Voltar}</button>
+                </p:commandLink>
+
+                <p:commandLink actionListener="#{usuarioBean.editar(usuarioBean.usuario)}" update="form:pnlContent"
+                               rendered="#{usuarioBean.visualizando}">
+                    <button class="btn btn-info pull-right">#{i18n.Editar}</button>
+                </p:commandLink>
+
+                <p:commandLink onclick="PF('confirmation').show();" global="false" ajax="true" process="@this"
+                               rendered="#{usuarioBean.visualizando}" >
+                    <button class="btn btn-danger pull-right">#{i18n.Excluir}</button>
+                    <f:setPropertyActionListener target="#{usuarioBean.usuario}" value="#{usuarioBean.usuario}"/>
+                </p:commandLink>
+
+                <p:commandLink actionListener="#{usuarioBean.gravar()}" update="form:pnlContent"
+                               rendered="#{usuarioBean.cadastrando or usuarioBean.editando}">
+                    <button class="btn btn-success pull-right">#{i18n.Salvar}</button>
+                </p:commandLink>
+
+                <p:commandLink actionListener="#{usuarioBean.novo()}" update="form:pnlContent" rendered="#{usuarioBean.listando}">
+                    <button class="btn btn-primary pull-right">#{i18n.Novo}</button>
+                </p:commandLink>
+            </div>
+        </div><!-- /.content-wrapper -->
+    </section><!-- /.content -->
+</ui:composition>

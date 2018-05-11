@@ -1,0 +1,23 @@
+{
+  "name": "siaag-db",
+  "version": "1.0.0",
+  "description": "",
+  "main": "gulpfile.js",
+  "dependencies": {
+    "express-list-endpoints": "^3.0.1",
+    "gulp": "^3.9.1",
+    "gulp-run": "^1.7.1"
+  },
+  "devDependencies": {
+    "glob": "^7.1.2",
+    "gulp-concat": "^2.6.1",
+    "gulp-debug": "^3.1.0",
+    "gulp-edit-xml": "^2.0.0",
+    "gulp-rename": "^1.2.2",
+    "js2xmlparser": "^3.0.0",
+    "through2": "^2.0.3",
+    "xmljson": "^0.2.0"
+  },
+  "author": "",
+  "license": "ISC"
+}

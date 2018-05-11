@@ -1,0 +1,137 @@
+<ui:composition 
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:f="http://xmlns.jcp.org/jsf/core"
+    xmlns:h="http://xmlns.jcp.org/jsf/html"
+    xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui">
+    
+		<!-- sidebar: style can be found in sidebar.less -->
+        <section class="sidebar">
+
+          <!-- Sidebar user panel (optional) -->
+          <div class="user-panel">
+            <div class="pull-left image">
+              <h:graphicImage library="img" name="user2-160x160.jpg" class="img-circle" alt="User Image"/>
+            </div>
+            <div class="pull-left info">
+              <p>
+              	<p:outputLabel value="#{segurancaBean.usuarioLogado.loginFormatado()}" />
+              </p>
+              <!-- Status -->
+              
+              
+              	<h:form onsubmit="this.action='#{request.contextPath}/logout';">
+	            	<p:commandButton ajax="false">
+	            		<i class="fa fa-sign-out"></i> <span>Sair</span>
+	            	</p:commandButton>
+            	</h:form>
+              
+            </div>
+          </div>
+
+          <!-- Sidebar Menu -->
+          <ul class="sidebar-menu">
+            <li class="header">AÇÕES</li>
+            
+            <!-- Optionally, you can add icons to the links -->
+            <li class="active">
+            	<p:commandLink action="#{segurancaBean.trocarItemMenu('Home')}" immediate="true">
+            	<i class="fa fa-home"></i> <span>Página Inicial</span>
+            	</p:commandLink>
+            </li>
+            
+            <li class="treeview">
+              <p:commandLink>
+            	<i class="fa fa-users"></i> <span>Cliente</span><i class="fa fa-angle-left pull-right"></i>
+            	</p:commandLink>
+              <ul class="treeview-menu">
+                <li>
+                	<p:commandLink action="#{segurancaBean.trocarItemMenu('CadastrarCliente')}" immediate="true">
+            			<i class="fa fa-user-plus"></i> <span>Cadastrar Cliente</span>
+            		</p:commandLink>
+				</li>
+                <li>
+                	<p:commandLink action="#{segurancaBean.trocarItemMenu('ListarCliente')}" immediate="true">
+	            		<i class="fa fa-users"></i> <span>Listar Cliente</span>
+	            	</p:commandLink>
+				</li>
+              </ul>
+            </li>
+            
+            <li class="treeview">
+              <p:commandLink>
+            	<i class="fa fa-file-text-o"></i> <span>Contrato</span><i class="fa fa-angle-left pull-right"></i>
+            	</p:commandLink>
+              <ul class="treeview-menu">
+                <li>
+                	<p:commandLink action="#{segurancaBean.trocarItemMenu('CadastrarContrato')}" immediate="true">
+            			<i class="fa fa-file-text-o"></i> <span>Cadastrar Contrato</span>
+            		</p:commandLink>
+				</li>
+                <li>
+                	<p:commandLink action="#{segurancaBean.trocarItemMenu('ListarContrato')}" immediate="true">
+	            		<i class="fa fa-file-text-o"></i> <span>Listar Contratos</span>
+	            	</p:commandLink>
+				</li>
+              </ul>
+            </li>
+
+            <li class="treeview">
+              <p:commandLink>
+            	<i class="fa fa-building"></i> <span>Empresa</span><i class="fa fa-angle-left pull-right"></i>
+            	</p:commandLink>
+              <ul class="treeview-menu">
+                <li>
+                	<p:commandLink action="#{segurancaBean.trocarItemMenu('CadastrarEmpresa')}" immediate="true">
+            			<i class="fa fa-building"></i> <span>Cadastrar Empresa</span>
+            		</p:commandLink>
+				</li>
+                <li>
+                	<p:commandLink action="#{segurancaBean.trocarItemMenu('ListarEmpresa')}" immediate="true">
+	            		<i class="fa fa-building"></i> <span>Listar Empresas</span>
+	            	</p:commandLink>
+				</li>
+              </ul>
+            </li>
+            
+            <li class="treeview">
+              <p:commandLink>
+            	<i class="fa fa-university"></i> <span>Unidade</span><i class="fa fa-angle-left pull-right"></i>
+            	</p:commandLink>
+              <ul class="treeview-menu">
+                <li>
+                	<p:commandLink action="#{segurancaBean.trocarItemMenu('CadastrarUnidade')}" immediate="true">
+            			<i class="fa fa-university"></i> <span>Cadastrar Unidade</span>
+            		</p:commandLink>
+				</li>
+                <li>
+                	<p:commandLink action="#{segurancaBean.trocarItemMenu('ListarUnidade')}" immediate="true">
+	            		<i class="fa fa-university"></i> <span>Listar Unidade</span>
+	            	</p:commandLink>
+				</li>
+              </ul>
+            </li>
+            
+            <li class="treeview">
+              <p:commandLink>
+            	<i class="fa fa-user"></i> <span>Usuário</span><i class="fa fa-angle-left pull-right"></i>
+            	</p:commandLink>
+              <ul class="treeview-menu">
+                <li>
+                	<p:commandLink action="#{segurancaBean.trocarItemMenu('CadastrarUsuario')}" immediate="true">
+            			<i class="fa fa-user-plus"></i> <span>Cadastrar Usuário</span>
+            		</p:commandLink>
+				</li>
+                <li>
+                	<p:commandLink action="#{segurancaBean.trocarItemMenu('ListarUsuario')}" immediate="true">
+	            		<i class="fa fa-users"></i> <span>Listar Usuários</span>
+	            	</p:commandLink>
+				</li>
+              </ul>
+            </li>
+            
+            
+          </ul><!-- /.sidebar-menu -->
+        </section>
+        <!-- /.sidebar -->
+</ui:composition>

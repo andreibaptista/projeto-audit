@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui">
+
+<h:head>
+    <title>Login SIAAG</title>
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" type="text/css"
+          href="#{request.contextPath}/resources/bootstrap/css/bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css"
+          href="#{request.contextPath}/resources/dist/css/AdminLTE.min.css"/>
+    <link rel="stylesheet" type="text/css"
+          href="#{request.contextPath}/resources/dist/css/skins/skin-blue.min.css"/>
+    <link rel="stylesheet" type="text/css"
+          href="#{request.contextPath}/resources/font-awesome/css/fontawesome-all.css"/>
+    <link rel="stylesheet" type="text/css"
+          href="#{request.contextPath}/resources/ionic/ionicons.min.css"/>
+    <link rel="stylesheet" type="text/css"
+          href="#{request.contextPath}/resources/default.css"/>
+</h:head>
+
+<h:body class="hold-transition login-page">
+    <h:form id="form" enctype="multipart/form-data" prependId="false">
+
+        <div class="login-box">
+
+            <div class="login-logo">
+                <a><b>SIAAG</b></a>
+                <br/>
+                <a style="font-size: 25px">Sistema de Atendimento Agendado</a>
+            </div><!-- /.login-logo -->
+
+            <div class="login-box-body">
+                <p:messages showIcon="false" showSummary="false" showDetail="true" closable="true"/>
+                <p:outputLabel value="Não foi possível acessar o sistema, login ou senha inválidos." style="color: red;"
+                               rendered="${!empty param['error']}"/>
+                <p class="login-box-msg">Logar para iniciar a sessão</p>
+
+                <div class="form-group has-feedback">
+                    <p:inputMask id="username" styleClass="form-control"
+                                 mask="999.999.999-99" placeholder="CPF"
+                                 converter="InputConverter" autocomplete="false"
+                                 requiredMessage="#{i18n.CampoObrigatorio}">
+                    </p:inputMask>
+                    <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                </div>
+                <p:outputPanel id="pnlPassword" >
+                    <div class="form-group has-feedback">
+                        <p:password id="password" styleClass="form-control" placeholder="Senha" maxlength="50"/>
+                        <span class="glyphicon glyphicon-lock form-control-feedback"></span>
+                        <div style="text-align: right;height: 12px">
+                            <a href="../recuperar-senha"
+                               style="font-style: normal;font-weight: normal;font-size: 10px">recuperar senha</a>
+                        </div>
+                    </div>
+                </p:outputPanel>
+                <br/>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <p:commandButton class="btn btn-primary btn-block btn-flat" value="#{i18n.Login}" ajax="false"/>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <div class="form-group">
+                            <span>Novo usuário? <a href="../pages/public/form-usuario.xhtml">Registre-se aqui</a></span>
+                        </div>
+                    </div>
+                </div>
+            </div><!-- /.login-box-body -->
+        </div>
+    </h:form>
+    <script type="text/javascript">
+        localStorage.setItem("menu","menuHome");
+    </script>
+
+    <!-- REQUIRED JS SCRIPTS -->
+    <script type="text/javascript"
+            src="#{request.contextPath}/resources/bootstrap/js/bootstrap.min.js"></script> <!-- Correio -->
+    <script type="text/javascript" src="#{request.contextPath}/resources/dist/js/app.min.js"></script> <!-- Correio -->
+</h:body>
+</html>

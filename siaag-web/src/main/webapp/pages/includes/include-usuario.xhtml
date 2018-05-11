@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:p="http://primefaces.org/ui">
+    <p:focus context="pnlLista"/>
+    <p:outputPanel id="pnlLista" rendered="#{usuarioBean.listando}">
+        <div class="row">
+            <div class="col-xs-2">
+                <div class="form-group">
+                    <label for="perfilPesq">#{i18n.Perfil}:</label>
+                    <div class="form-group">
+                        <h:selectOneMenu id="perfilPesq" value="#{usuarioBean.perfilPesq}" styleClass="form-control"
+                                         filter="true" filterMatchMode="startsWith" required="true"
+                                         requiredMessage="#{i18n.CampoObrigatorio}" converter="JSFUniversalConverter"
+                                         disabled="#{usuarioBean.visualizando}">
+                            <f:selectItems value="#{usuarioBean.perfils}" var="perfil"
+                                           itemLabel="#{perfil.descricao}" itemValue="#{perfil}"/>
+                            <p:ajax update="form:dtUsuarios"
+                                    listener="#{usuarioBean.pesquisaUsuarios}"/>
+                        </h:selectOneMenu>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-4">
+                <div class="form-group">
+                    <label for="nomePesq">#{i18n.Nome}:</label>
+                    <p:inputText id="nomePesq" value="#{usuarioBean.nomePesq}" styleClass="form-control"
+                                 placeholder="#{i18n.Nome}">
+                        <p:ajax update="form:dtUsuarios" event="keyup"
+                                listener="#{usuarioBean.pesquisaUsuarios}"/>
+                    </p:inputText>
+                </div>
+            </div>
+        </div>
+        <br/>
+        <p:dataTable id="dtUsuarios" value="#{usuarioBean.usuarios}"
+                     var="usuario" styleClass="table table-bordered table-hover dataTable" paginator="true"
+                     rows="10"
+                     emptyMessage="#{i18n.NaoHaRegistros}"
+                     paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}">
+
+            <p:column headerText="#{i18n.Login}">
+                <h:outputText value="#{usuario.loginFormatado()}"/>
+            </p:column>
+
+            <p:column headerText="#{i18n.Nome}">
+                <h:outputText value="#{usuario.pessoa.nome}"/>
+            </p:column>
+
+            <p:column headerText="#{i18n.Perfil}">
+                <h:outputText value="#{usuario.perfil.descricao}"/>
+            </p:column>
+
+            <p:column headerText="#{i18n.Acao}" style="text-align: center;" width="200">
+                <p:commandLink actionListener="#{usuarioBean.visualizar(usuario)}" update="form:pnlContent"
+                               styleClass="btn btn-default">
+                    <i class="fa fa-eye"/> <span></span>
+                </p:commandLink>
+
+                <p:commandLink actionListener="#{usuarioBean.editar(usuario)}" update="form:pnlContent"
+                               styleClass="btn btn-info">
+                    <i class="fas fa fa-pencil-alt"/> <span></span>
+                </p:commandLink>
+
+                <p:commandLink onclick="PF('confirmation').show();" global="false" ajax="true" process="@this"
+                               styleClass="btn btn-danger">
+                    <i class="fa fa-trash"/> <span></span>
+                    <f:setPropertyActionListener target="#{usuarioBean.usuario}" value="#{usuario}"/>
+                </p:commandLink>
+            </p:column>
+        </p:dataTable>
+
+    </p:outputPanel>
+    <p:outputPanel rendered="#{usuarioBean.cadastrando or usuarioBean.editando or usuarioBean.visualizando}">
+        <div class="row">
+            <div class="col-xs-2">
+                <div class="form-group">
+                    <label for="cpf">#{i18n.CPF}*</label>
+                    <p:inputMask id="cpf" styleClass="form-control"
+                                 value="#{usuarioBean.usuario.pessoa.cpf}" mask="999.999.999-99"
+                                 converter="InputConverter" validator="CPFCNPJValidator"
+                                 required="true"
+                                 requiredMessage="#{i18n.CampoObrigatorio}"
+                                 disabled="#{usuarioBean.visualizando or usuarioBean.editando}">
+                        <p:ajax event="keyup" process="@this"
+                                update="form:messages,msgCpf, nome, dataNascimento, logradouro, complemento,cep, bairro, municipio, uf, email, celular, telefone, numero"
+                                listener="#{usuarioBean.buscaVerificaUsuarioExistente(usuarioBean.usuario)}"/>
+                    </p:inputMask>
+                    <p:message id="msgCpf" for="cpf" display="text" showSummary="false"/>
+                </div>
+            </div>
+            <p:outputPanel id="pnlSenha"
+                           rendered="#{usuarioBean.editando and usuarioBean.usuario eq segurancaBean.usuarioLogado}">
+                <div class="col-xs-2">
+                    <label for="senha">#{i18n.NovaSenha}</label>
+                    <p:password id="senha" styleClass="form-control"
+                                value="#{usuarioBean.novaSenha}" maxlength="50">
+                    </p:password>
+                    <p:message for="senha" id="msgSenha" display="text" showSummary="false"
+                               showDetail="true"/>
+                </div>
+            </p:outputPanel>
+
+            <p:outputPanel rendered="#{segurancaBean.usuarioLogado.perfil.id == 1}">
+                <div class="col-xs-2">
+                    <label for="perfil">#{i18n.Perfil}*</label>
+                    <div class="form-group">
+                        <h:selectOneMenu id="perfil" value="#{usuarioBean.usuario.perfil}" styleClass="form-control"
+                                         filter="true" filterMatchMode="startsWith" required="true"
+                                         requiredMessage="#{i18n.CampoObrigatorio}" converter="JSFUniversalConverter"
+                                         disabled="#{usuarioBean.visualizando or segurancaBean.usuarioLogado.perfil.id == 4}">
+                            <f:selectItems value="#{usuarioBean.perfils}" var="perfil"
+                                           itemLabel="#{perfil.descricao}" itemValue="#{perfil}"/>
+                            <p:ajax event="change"
+                                    update="form:pnlUsuarioInterno, form:pnlEndereco, form:pnlTelefonesNaoPerfilInterno, form:pnlTelefonePerfilInterno"
+                                    process="@this"
+                                    listener="#{usuarioBean.carregaSetores()}"/>
+                        </h:selectOneMenu>
+                        <p:message for="perfil" id="msgPerfil" display="text" showSummary="false"
+                                   showDetail="true"/>
+                    </div>
+                </div>
+                <p:outputPanel id="pnlUsuarioInterno">
+                    <p:outputPanel rendered="#{usuarioBean.usuario.perfil.id != 4}">
+                        <div class="col-xs-4">
+                            <label for="pontoAtendimento">#{i18n.Locacao}*</label>
+                            <div class="form-group">
+                                <h:selectOneMenu id="pontoAtendimento" styleClass="form-control"
+                                                 value="#{usuarioBean.pontoAtendimento}"
+                                                 filter="true" filterMatchMode="contains"
+                                                 converter="JSFUniversalConverter" required="true"
+                                                 requiredMessage="#{i18n.CampoObrigatorio}"
+                                                 disabled="#{usuarioBean.visualizando or usuarioBean.usuario.perfil.id == 4}">
+                                    <f:selectItem itemLabel="#{i18n.Selecione}" itemValue=""/>
+                                    <f:selectItems value="#{usuarioBean.pontoAtendimentos}" var="pontoAtendimento"
+                                                   itemLabel="#{pontoAtendimento.formatado()}"
+                                                   itemValue="#{pontoAtendimento}"/>
+                                    <p:ajax event="change" update="setor" listener="#{usuarioBean.carregaSetores()}"/>
+                                </h:selectOneMenu>
+                                <p:message for="pontoAtendimento" id="msgPontoAtendimento" display="text"
+                                           showSummary="false"
+                                           showDetail="true"/>
+                            </div>
+
+                        </div>
+                        <div class="col-xs-3">
+                            <label for="setor">#{i18n.Setor}*</label>
+                            <div class="form-group">
+                                <h:selectOneMenu id="setor" value="#{usuarioBean.setor}" styleClass="form-control"
+                                                 rendered="#{usuarioBean.usuario.perfil.id != 4}"
+                                                 filter="true" filterMatchMode="contains"
+                                                 converter="JSFUniversalConverter" required="true"
+                                                 requiredMessage="#{i18n.CampoObrigatorio}"
+                                                 disabled="#{usuarioBean.visualizando or usuarioBean.usuario.perfil.id == 4}">
+                                    <f:selectItem itemLabel="#{i18n.Selecione}" itemValue=""/>
+                                    <f:selectItems value="#{usuarioBean.setores}" var="setor"
+                                                   itemLabel="#{setor.descricao}" itemValue="#{setor}"/>
+                                </h:selectOneMenu>
+                                <p:message for="setor" id="msgSetor" display="text" showSummary="false"
+                                           showDetail="true"/>
+                            </div>
+                        </div>
+                        <div class="col-xs-1">
+                            <div class="form-group">
+                                <label for="matricula">#{i18n.Matricula}</label>
+                                <p:inputText id="matricula" styleClass="form-control"
+                                             value="#{usuarioBean.usuario.matricula}"
+                                             maxlength="20"
+                                             disabled="#{usuarioBean.visualizando or usuarioBean.usuario.perfil.id == 4}"/>
+                                <p:message for="matricula" display="text" showSummary="false"/>
+                            </div>
+                        </div>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:outputPanel>
+        </div>
+
+        <div class="row">
+            <div class="col-xs-6">
+                <div class="form-group">
+                    <label for="nome">#{i18n.Nome}*</label>
+                    <p:inputText styleClass="form-control" id="nome"
+                                 value="#{usuarioBean.usuario.pessoa.nome}" required="true"
+                                 validator="NomeValidator"
+                                 requiredMessage="#{i18n.CampoObrigatorio}" maxlength="150"
+                                 disabled="#{usuarioBean.visualizando or segurancaBean.usuarioLogado.perfil.id == 4}">
+                    </p:inputText>
+                    <p:message for="nome" id="msgNome" display="text" showSummary="false"
+                               showDetail="true"/>
+                </div>
+            </div>
+            <div class="col-xs-2">
+                <div class="form-group">
+                    <label for="dataNascimento">#{i18n.DataNascimento}*</label>
+                    <p:calendar id="dataNascimento" label="#{i18n.DataNascimento}"
+                                pattern="dd/MM/yyyy"
+                                value="#{usuarioBean.usuario.pessoa.dataNascimento}" required="true"
+                                mask="99/99/9999" yearRange="c-150:c+150"
+                                mindate="#{usuarioBean.minDate()}"
+                                maxdate="#{usuarioBean.currentDate()}" navigator="true"
+                                locale="pt_BR" requiredMessage="#{i18n.CampoObrigatorio}"
+                                validator="DataNascimentoValidator"
+                                disabled="#{usuarioBean.visualizando or segurancaBean.usuarioLogado.perfil.id == 4}">
+                    </p:calendar>
+                    <p:message for="dataNascimento" display="text" showSummary="false"
+                               showDetail="true"/>
+                </div>
+            </div>
+        </div>
+        <!--ENDERECO -->
+        <p:outputPanel id="pnlEndereco">
+            <p:outputPanel rendered="#{usuarioBean.usuario.perfil.id == 4}">
+                <div class="row">
+                    <div class="col-xs-2">
+                        <div class="form-group">
+                            <label for="cep"> #{i18n.Cep}*</label>
+                            <p:inputMask id="cep" styleClass="form-control"
+                                         value="#{usuarioBean.usuario.pessoa.endereco.cep}"
+                                         mask="99999-999" size="10" converter="InputConverter" required="true"
+                                         requiredMessage="#{i18n.CampoObrigatorio}"
+                                         disabled="#{usuarioBean.visualizando or segurancaBean.usuarioLogado.perfil.id == 4}">
+                                <p:ajax event="keyup"
+                                        listener="#{usuarioBean.getEnderecoCep(usuarioBean.usuario.pessoa.endereco)}"
+                                        update="form:messages,logradouro, complemento, bairro, municipio, uf"/>
+                            </p:inputMask>
+                            <p:message for="cep" display="text" showSummary="false"/>
+                        </div>
+                    </div>
+                    <div class="col-xs-8">
+                        <div class="form-group">
+                            <label for="logradouro">#{i18n.Logradouro}*</label>
+                            <p:inputText id="logradouro" styleClass="form-control"
+                                         value="#{usuarioBean.usuario.pessoa.endereco.logradouro}"
+                                         maxlength="200" required="true"
+                                         disabled="#{usuarioBean.visualizando or segurancaBean.usuarioLogado.perfil.id == 4}"
+                                         requiredMessage="#{i18n.CampoObrigatorio}"/>
+                            <p:message for="logradouro" display="text" showSummary="false"/>
+                        </div>
+                    </div>
+                    <div class="col-xs-2">
+                        <div class="form-group">
+                            <label for="numero">#{i18n.Numero}*</label>
+                            <p:inputText id="numero" styleClass="form-control"
+                                         value="#{usuarioBean.usuario.pessoa.endereco.numero}" maxlength="10"
+                                         required="true" requiredMessage="#{i18n.CampoObrigatorio}"
+                                         disabled="#{usuarioBean.visualizando or segurancaBean.usuarioLogado.perfil.id == 4}"/>
+                            <p:message for="numero" display="text" showSummary="false"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <div class="form-group">
+                            <label for="complemento">#{i18n.Complemento}</label>
+                            <p:inputText id="complemento" styleClass="form-control"
+                                         value="#{usuarioBean.usuario.pessoa.endereco.complemento}"
+                                         maxlength="200"
+                                         disabled="#{usuarioBean.visualizando or segurancaBean.usuarioLogado.perfil.id == 4}"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-4">
+                        <div class="form-group">
+                            <label for="bairro">#{i18n.Bairro}*</label>
+                            <p:inputText id="bairro" styleClass="form-control"
+                                         value="#{usuarioBean.usuario.pessoa.endereco.bairro}" maxlength="50"
+                                         required="true" requiredMessage="#{i18n.CampoObrigatorio}"
+                                         disabled="#{usuarioBean.visualizando or segurancaBean.usuarioLogado.perfil.id == 4}"/>
+                            <p:message for="bairro" display="text" showSummary="false"
+                                       disabled="#{usuarioBean.visualizando}"/>
+                        </div>
+                    </div>
+                    <div class="col-xs-4">
+                        <div class="form-group">
+                            <label for="municipio"> #{i18n.Municipio}*</label>
+                            <p:inputText id="municipio" styleClass="form-control"
+                                         value="#{usuarioBean.usuario.pessoa.endereco.cidade}" maxlength="100"
+                                         required="true" requiredMessage="#{i18n.CampoObrigatorio}"
+                                         disabled="#{usuarioBean.visualizando or segurancaBean.usuarioLogado.perfil.id == 4}"/>
+                            <p:message for="municipio" display="text" showSummary="false"/>
+                        </div>
+                    </div>
+
+                    <div class="col-xs-2">
+                        <label for="uf">#{i18n.UF}*</label>
+                        <div class="form-group">
+                            <h:selectOneMenu id="uf" value="#{usuarioBean.usuario.pessoa.endereco.uf}"
+                                             styleClass="form-control"
+                                             filter="true" filterMatchMode="startsWith" required="true"
+                                             requiredMessage="#{i18n.CampoObrigatorio}"
+                                             disabled="#{usuarioBean.visualizando or segurancaBean.usuarioLogado.perfil.id == 4}">
+                                <f:selectItem itemLabel="#{i18n.Selecione}" itemValue=""/>
+                                <f:selectItems value="#{usuarioBean.estados}" var="estados"
+                                               itemLabel="#{estados.nome}" itemValue="#{estados.sigla}"/>
+                            </h:selectOneMenu>
+                            <p:message for="uf" display="text" showSummary="false"/>
+                        </div>
+                    </div>
+                </div>
+            </p:outputPanel>
+        </p:outputPanel>
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="form-group">
+                    <label for="email">#{i18n.Email}*</label>
+                    <p:inputText id="email" styleClass="form-control"
+                                 value="#{usuarioBean.usuario.pessoa.email}" maxlength="150"
+                                 validator="EmailValidator" disabled="#{usuarioBean.visualizando}"
+                                 required="true"
+                                 requiredMessage="#{i18n.CampoObrigatorio}"/>
+                    <p:message for="email" display="text" showSummary="false"/>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <p:outputPanel id="pnlTelefonePerfilInterno">
+                <div class="col-xs-2">
+                    <div class="form-group">
+                        <label for="telefone">#{usuarioBean.usuario.perfil.id == 4 ? i18n.TelefoneObrigatorio : i18n.Telefone}</label>
+                        <p:inputMask id="telefone" styleClass="form-control"
+                                     rendered="#{usuarioBean.usuario.perfil.id == 4}"
+                                     value="#{usuarioBean.usuario.pessoa.telefone1}" mask="(99)99999-999?9"
+                                     size="15" converter="InputConverter" disabled="#{usuarioBean.visualizando}"
+                                     required="true" requiredMessage="#{i18n.CampoObrigatorio}"/>
+                        <p:message for="telefone" display="text" showSummary="false"/>
+                        <p:inputMask id="telefonePerfilInterno" styleClass="form-control"
+                                     rendered="#{usuarioBean.usuario.perfil.id != 4}"
+                                     value="#{usuarioBean.usuario.pessoa.telefone1}" mask="(99)99999-999?9"
+                                     size="15" converter="InputConverter" disabled="#{usuarioBean.visualizando}"/>
+                    </div>
+                </div>
+            </p:outputPanel>
+            <p:outputPanel id="pnlTelefonesNaoPerfilInterno">
+                <p:outputPanel rendered="#{usuarioBean.usuario.perfil.id == 4}">
+                    <div class="col-xs-2">
+                        <div class="form-group">
+                            <label for="telefone2">#{i18n.Telefone}</label>
+                            <p:inputMask id="telefone2" styleClass="form-control" disabled="#{usuarioBean.visualizando}"
+                                         value="#{usuarioBean.usuario.pessoa.telefone2}" mask="(99)99999-999?9"
+                                         size="15" converter="InputConverter"/>
+                        </div>
+                    </div>
+                    <div class="col-xs-2">
+                        <div class="form-group">
+                            <label for="celular">#{i18n.Celular}*</label>
+                            <p:inputMask id="celular" styleClass="form-control" disabled="#{usuarioBean.visualizando}"
+                                         value="#{usuarioBean.usuario.pessoa.celular}" mask="(99)99999-999?9"
+                                         size="15" converter="InputConverter" required="true"
+                                         requiredMessage="#{i18n.CampoObrigatorio}"/>
+                            <p:message for="celular" display="text" showSummary="false"/>
+                        </div>
+                    </div>
+                </p:outputPanel>
+            </p:outputPanel>
+        </div>
+    </p:outputPanel>
+    <script type="application/javascript">
+        $('form').off('keypress.disableAutoSubmitOnEnter').on('keypress.disableAutoSubmitOnEnter', function (event) {
+            if (event.which === $.ui.keyCode.ENTER) {
+                if ($(event.target).is(':input:not(textarea,:button,:submit,:reset)')) {
+                    event.preventDefault();
+                }
+            }
+        });
+    </script>
+
+</ui:composition>

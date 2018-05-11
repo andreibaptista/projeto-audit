@@ -1,0 +1,81 @@
+<ui:composition
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+        xmlns:p="http://primefaces.org/ui"
+        xmlns:f="http://java.sun.com/jsf/core">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <h1>
+            #{i18n.Atendimento}
+        </h1>
+
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+        <div id="teste" class="box box-primary">
+            <div class="box-header with-border">
+                <h3 class="box-title">#{atendimentoBean.listando ? i18n.ConsultarAtendimento : atendimentoBean.editando ? i18n.Reagendamento : atendimentoBean.visualizando ? i18n.Detalhes : i18n.NovoAtendimento}</h3>
+            </div>
+            <div class="box-body">
+                <ui:include src="/pages/includes/include-atendimento.xhtml"/>
+            </div>
+
+            <div class="box-footer">
+                <p:commandLink actionListener="#{atendimentoBean.cancelar()}" process="@this" ajax="true" update="form:pnlContent"
+                               rendered="#{(not atendimentoBean.confirmouDados and atendimentoBean.cadastrando)  or atendimentoBean.editando or atendimentoBean.visualizando}">
+                    <button class="btn btn-default">#{i18n.Voltar}</button>
+                </p:commandLink>
+
+                <p:commandLink actionListener="#{atendimentoBean.voltarConfirmarDados()}" process="@this" ajax="true"
+                               update="form:pnlContent"
+                               rendered="#{not atendimentoBean.isRedirecionaTela() and atendimentoBean.confirmouDados and atendimentoBean.cadastrando}">
+                    <button class="btn btn-default">#{i18n.Voltar}</button>
+                </p:commandLink>
+
+                <p:commandLink actionListener="#{atendimentoBean.cancelar()}" process="@this" ajax="true"
+                               update="form:pnlContent"
+                               rendered="#{atendimentoBean.isRedirecionaTela() and atendimentoBean.cadastrando}">
+                    <button class="btn btn-default">#{i18n.Voltar}</button>
+                </p:commandLink>
+
+                <p:commandLink actionListener="#{atendimentoBean.editar(atendimentoBean.atendimento)}" update="form:pnlContent"
+                               rendered="#{atendimentoBean.visualizando and
+                               (atendimentoBean.atendimento != null and atendimentoBean.atendimento.id != null and atendimentoBean.atendimento.situacaoAtendimento.id lt 3)}">
+                    <button class="btn btn-primary pull-right">#{i18n.Reagendar}</button>
+                </p:commandLink>
+
+                <p:commandLink onclick="PF('confirmation').show();" global="false" ajax="true" process="@this"
+                               rendered="#{atendimentoBean.visualizando and
+                               (atendimentoBean.atendimento != null and atendimentoBean.atendimento.id != null and atendimentoBean.atendimento.situacaoAtendimento.id lt 3)}"
+                               styleClass="btn btn-danger pull-right" value="#{i18n.Cancelar}" update="form:pnlCancelamento">
+                    <f:setPropertyActionListener target="#{atendimentoBean.atendimento}" value="#{atendimentoBean.atendimento}"/>
+                </p:commandLink>
+
+                <p:commandLink type="button" process="@this" ajax="true"
+                               update="form:pnlContent"
+                               rendered="#{atendimentoBean.isRedirecionaTela() and (atendimentoBean.cadastrando or atendimentoBean.editando or atendimentoBean.visualizando) or
+                               (atendimentoBean.visualizando and
+                               (atendimentoBean.atendimento != null and atendimentoBean.atendimento.id != null))}">
+                    <button class="btn btn-default pull-right" onclick="PrintElem('form:pnlDetalhes')">#{i18n.Imprimir}</button>
+                    <!--<p:printer target="pnlDetalhes"/>-->
+                </p:commandLink>
+
+                <p:commandLink actionListener="#{atendimentoBean.confirmarDados()}" update="form:pnlContent"
+                               rendered="#{atendimentoBean.confirmouDados == false and (atendimentoBean.cadastrando)}">
+                    <button class="btn btn-primary pull-right">#{i18n.ConfirmarDados}</button>
+                </p:commandLink>
+
+                <p:commandLink actionListener="#{atendimentoBean.gravar()}" update="form:pnlContent"
+                               rendered="#{not atendimentoBean.isRedirecionaTela() and atendimentoBean.confirmouDados and (atendimentoBean.cadastrando or atendimentoBean.editando)}">
+                    <button class="btn btn-success pull-right">#{atendimentoBean.cadastrando ? i18n.Agendar : i18n.Reagendar}</button>
+                </p:commandLink>
+
+                <p:commandLink actionListener="#{atendimentoBean.novo()}" update="form:pnlContent"
+                               rendered="#{atendimentoBean.listando}">
+                    <button class="btn btn-primary pull-right">#{i18n.Novo}</button>
+                </p:commandLink>
+            </div>
+        </div><!-- /.content-wrapper -->
+    </section><!-- /.content -->
+</ui:composition>

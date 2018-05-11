@@ -1,0 +1,47 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+  <changeSet id="SIAAG-1.0-0002" author="aleixo.porpino">
+    <sqlFile path="sqls/SIAAG-1.0-0002/0-default.sql" relativeToChangelogFile="true" endDelimiter="/"/>
+    <sqlFile path="sqls/SIAAG-1.0-0002/1-tab_perfil.sql" relativeToChangelogFile="true"/>
+    <sqlFile path="sqls/SIAAG-1.0-0002/2-tab_tipo_beneficiario.sql" relativeToChangelogFile="true"/>
+    <sqlFile path="sqls/SIAAG-1.0-0002/3-tab_tipo_requerente.sql" relativeToChangelogFile="true"/>
+    <sqlFile path="sqls/SIAAG-1.0-0002/4-tab_endereco.sql" relativeToChangelogFile="true"/>
+    <sqlFile path="sqls/SIAAG-1.0-0002/5-tab_pessoa.sql" relativeToChangelogFile="true"/>
+    <sqlFile path="sqls/SIAAG-1.0-0002/6-tab_usuario.sql" relativeToChangelogFile="true"/>
+  </changeSet>
+  <changeSet id="SIAAG-1.0-0003" author="aleixo.porpino">
+    <sqlFile path="sqls/SIAAG-1.0-0003/1-alter pessoa e atendimento.sql" relativeToChangelogFile="true"/>
+  </changeSet>
+  <changeSet id="SIAAG-1.0-0004" author="aleixo.porpino">
+    <sqlFile path="sqls/SIAAG-1.0-0004/1-alterar tamanho campo telefone.sql" relativeToChangelogFile="true"/>
+    <sqlFile path="sqls/SIAAG-1.0-0004/2-insert perfis.sql" relativeToChangelogFile="true"/>
+  </changeSet>
+  <changeSet id="SIAAG-1.0-0005" author="aleixo.porpino">
+    <sqlFile path="sqls/SIAAG-1.0-0005/0-drop.sql" relativeToChangelogFile="true" endDelimiter="/"/>
+    <sqlFile path="sqls/SIAAG-1.0-0005/1-tab_horario.sql" relativeToChangelogFile="true" endDelimiter="/"/>
+    <sqlFile path="sqls/SIAAG-1.0-0005/2-tab_agenda.sql" relativeToChangelogFile="true" endDelimiter="/"/>
+    <sqlFile path="sqls/SIAAG-1.0-0005/3-tab_agenda_item.sql" relativeToChangelogFile="true" endDelimiter="/"/>
+    <sqlFile path="sqls/SIAAG-1.0-0005/4-tab_bloqueio_agenda.sql" relativeToChangelogFile="true" endDelimiter="/"/>
+  </changeSet>
+  <changeSet id="SIAAG-1.0-0006" author="aleixo.porpino">
+    <sqlFile path="sqls/SIAAG-1.0-0006/0-drop.sql" relativeToChangelogFile="true" endDelimiter="/"/>
+    <sqlFile path="sqls/SIAAG-1.0-0006/1-tab_tipo_atendimento.sql" relativeToChangelogFile="true" endDelimiter="/"/>
+    <sqlFile path="sqls/SIAAG-1.0-0006/2-tab_ponto_atendimento.sql" relativeToChangelogFile="true" endDelimiter="/"/>
+    <sqlFile path="sqls/SIAAG-1.0-0006/3-tab_atendimento.sql" relativeToChangelogFile="true" endDelimiter="/"/>
+    <sqlFile path="sqls/SIAAG-1.0-0006/4-insert tab_tipo_beneficiario.sql" relativeToChangelogFile="true" endDelimiter="/"/>
+    <sqlFile path="sqls/SIAAG-1.0-0006/5-view_datas_disponiveis.sql" relativeToChangelogFile="true" endDelimiter="/"/>
+    <sqlFile path="sqls/SIAAG-1.0-0006/6-view_horas_disponiveis.sql" relativeToChangelogFile="true" endDelimiter="/"/>
+    <sqlFile path="sqls/SIAAG-1.0-0006/7-campo_usuario_inclusao_tab_atendimento.sql" relativeToChangelogFile="true"/>
+  </changeSet>
+  <changeSet id="SIAAG-1.0-0007" author="aleixo.porpino">
+    <sqlFile path="sqls/SIAAG-1.0-0007/0-drop.sql" relativeToChangelogFile="true" endDelimiter="/"/>
+    <sqlFile path="sqls/SIAAG-1.0-0007/1-tab_setor.sql" relativeToChangelogFile="true"/>
+    <sqlFile path="sqls/SIAAG-1.0-0007/2-tab_ponto_atendimento_setor.sql" relativeToChangelogFile="true" endDelimiter="/"/>
+    <sqlFile path="sqls/SIAAG-1.0-0007/3-alteracao_tabela_atendimento.sql" relativeToChangelogFile="true" endDelimiter="/"/>
+    <sqlFile path="sqls/SIAAG-1.0-0007/4-alteracao_tabela_horario.sql" relativeToChangelogFile="true" endDelimiter="/"/>
+    <sqlFile path="sqls/SIAAG-1.0-0007/5-alter tab_setor e inserts.sql" relativeToChangelogFile="true"/>
+    <sqlFile path="sqls/SIAAG-1.0-0007/6-INSERTS_TIPO_ATENDIMENTO.sql" relativeToChangelogFile="true"/>
+    <sqlFile path="sqls/SIAAG-1.0-0007/7-tab_arquivo_vw_painel_atendimento.sql" relativeToChangelogFile="true" endDelimiter="/"/>
+	<sqlFile path="sqls/SIAAG-1.0-0007/8-alter_tab_atendimento.sql" relativeToChangelogFile="true" />
+  </changeSet>
+</databaseChangeLog>

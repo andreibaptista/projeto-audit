@@ -1,0 +1,682 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:fn="http://java.sun.com/jsp/jstl/functions">
+    <p:outputPanel id="pnlLista" rendered="#{atendimentoBean.listando}">
+        <p:outputPanel rendered="#{segurancaBean.usuarioLogado.perfil.id != 4}">
+            <div class="row">
+                <div class="col-xs-5">
+                    <div class="form-group">
+                        <label for="cpfPesq">#{i18n.CPF}:</label>
+                        <p:inputMask id="cpfPesq" styleClass="form-control"
+                                     value="#{atendimentoBean.cpfPesq}" mask="999.999.999-99" slotChar=" "
+                                     converter="InputConverter">
+                            <p:ajax update="dtAtendimentos" event="keyup"
+                                    listener="#{atendimentoBean.pesquisaAtendimentos}"/>
+                        </p:inputMask>
+                    </div>
+                </div>
+            </div>
+            <br/>
+        </p:outputPanel>
+
+        <p:dataTable id="dtAtendimentos" value="#{atendimentoBean.atendimentos}"
+                     var="usuario" styleClass="table table-bordered table-hover dataTable" paginator="true"
+                     rows="10"
+                     emptyMessage="#{i18n.NaoHaRegistros}"
+                     paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}">
+
+            <p:column headerText="#{i18n.FormaTipoAtendimento}" width="18%">
+                <h:outputText value="#{usuario.formaAtendimento.value}"/>
+                <br/>
+                <h:outputText value="#{usuario.tipoAtendimento.descricao}"/>
+            </p:column>
+
+            <p:column headerText="#{i18n.DataHorario}" width="11%">
+                <h:outputText value="#{usuario.dataExtenso}">
+                    <f:convertDateTime pattern="dd/MM/yyyy"/>
+                </h:outputText>
+                <br/>
+                <h:outputText value="#{usuario.horarioInicio.horarioFormatado()}"/>
+            </p:column>
+
+            <p:column headerText="#{i18n.Atendente}">
+                <h:outputText value="#{usuario.atendente.nome}"/>
+            </p:column>
+            <p:column headerText="#{i18n.Cliente}">
+                <h:outputText value="#{usuario.beneficiario.nome}"/>
+            </p:column>
+
+            <p:column headerText="#{i18n.Situacao}" width="8%">
+                <h:outputText value="#{usuario.situacaoAtendimento.descricao}"/>
+            </p:column>
+
+            <p:column headerText="#{i18n.Acao}" style="text-align: center;" width="25%">
+                <p:commandLink actionListener="#{atendimentoBean.visualizar(usuario)}" update="form:pnlContent"
+                               styleClass="btn btn-default" value="#{i18n.Detalhar}">
+                </p:commandLink>
+                <p:commandLink actionListener="#{atendimentoBean.editar(usuario)}" update="form:pnlContent"
+                               rendered="#{usuario.situacaoAtendimento.id lt 3}"
+                               styleClass="btn btn-info" value="#{i18n.Reagendar}">
+                </p:commandLink>
+
+                <p:commandLink onclick="PF('confirmation').show();" global="false" ajax="true" process="@this"
+                               rendered="#{usuario.situacaoAtendimento.id lt 3}"
+                               styleClass="btn btn-danger" value="#{i18n.Cancelar}" update="form:pnlCancelamento">
+                    <f:setPropertyActionListener target="#{atendimentoBean.atendimento}" value="#{usuario}"/>
+                </p:commandLink>
+            </p:column>
+        </p:dataTable>
+
+    </p:outputPanel>
+    <p:outputPanel id="pnlConfirmarDados"
+                   rendered="#{not atendimentoBean.confirmouDados and atendimentoBean.cadastrando}">
+        <div class="row">
+            <div class="col-xs-3">
+                <div class="form-group">
+                    <label for="cpf">#{i18n.CPF}*</label>
+                    <p:inputMask id="cpf" styleClass="form-control"
+                                 value="#{atendimentoBean.atendimento.beneficiario.cpf}" mask="999.999.999-99"
+                                 converter="InputConverter"
+                                 required="true"
+                                 requiredMessage="#{i18n.CampoObrigatorio}"
+                                 disabled="#{atendimentoBean.visualizando or atendimentoBean.editando or segurancaBean.usuarioLogado.perfil.id == 4}">
+                        <p:ajax event="keyup" update="form:messages, endereco, nome, dataNascimento"
+                                listener="#{atendimentoBean.pesquisaCpf()}"/>
+                    </p:inputMask>
+                    <p:message for="cpf" display="text" showSummary="false"/>
+                </div>
+            </div>
+            <div class="col-xs-6">
+                <div class="form-group">
+                    <label for="nome">#{i18n.Nome}*</label>
+                    <p:inputText styleClass="form-control" id="nome"
+                                 value="#{atendimentoBean.atendimento.beneficiario.nome}" required="true"
+                                 validator="NomeValidator"
+                                 requiredMessage="#{i18n.CampoObrigatorio}" maxlength="150"
+                                 disabled="#{atendimentoBean.visualizando or not atendimentoBean.pesquisouCpf or segurancaBean.usuarioLogado.perfil.id != 1 and atendimentoBean.atendimento.beneficiario.id != null}">
+                    </p:inputText>
+                    <p:message for="nome" id="msgNome" display="text" showSummary="false"
+                               showDetail="true"/>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-xs-4">
+                <div class="form-group">
+                    <label for="tipoBeneficiario">#{i18n.TipoBeneficiario}*</label>
+                    <p:selectOneRadio id="tipoBeneficiario" value="#{atendimentoBean.atendimento.tipoBeneficiario}" styleClass="iCheck-helper"
+                                      layout="grid" columns="2" required="true" converter="JSFUniversalConverter"
+                                      requiredMessage="#{i18n.CampoObrigatorio}">
+                        <f:selectItems value="#{atendimentoBean.tipoBeneficiarios}" var="tpBeneficiario"
+                                       itemLabel="#{tpBeneficiario.descricao}" itemValue="#{tpBeneficiario}"/>
+                    </p:selectOneRadio>
+                    <p:message for="tipoBeneficiario" display="text" showSummary="false"/>
+                </div>
+            </div>
+            <div class="col-xs-4">
+                <div class="form-group">
+                    <label for="dataNascimento">#{i18n.DataNascimento}*</label>
+                    <p:calendar id="dataNascimento" label="#{i18n.DataNascimento}"
+                                pattern="dd/MM/yyyy"
+                                value="#{atendimentoBean.atendimento.beneficiario.dataNascimento}" required="true"
+                                mask="99/99/9999" yearRange="c-150:c+150"
+                                mindate="#{atendimentoBean.minDate()}"
+                                maxdate="#{atendimentoBean.currentDate()}" navigator="true"
+                                locale="pt_BR" requiredMessage="#{i18n.CampoObrigatorio}"
+                                validator="DataNascimentoValidator"
+                                disabled="#{atendimentoBean.visualizando or not atendimentoBean.pesquisouCpf or segurancaBean.usuarioLogado.perfil.id != 1 and atendimentoBean.atendimento.beneficiario.id != null}">
+                    </p:calendar>
+                    <p:message for="dataNascimento" display="text" showSummary="false"
+                               showDetail="true"/>
+                </div>
+            </div>
+        </div>
+        <!--ENDERECO -->
+        <p:outputPanel id="endereco">
+            <div class="row">
+                <div class="col-xs-2">
+                    <div class="form-group">
+                        <label for="cep"> #{i18n.Cep}*</label>
+                        <p:inputMask id="cep" styleClass="form-control"
+                                     value="#{atendimentoBean.atendimento.beneficiario.endereco.cep}"
+                                     mask="99999-999" size="10" converter="InputConverter" required="true"
+                                     requiredMessage="#{i18n.CampoObrigatorio}"
+                                     disabled="#{atendimentoBean.visualizando or not atendimentoBean.pesquisouCpf or segurancaBean.usuarioLogado.perfil.id != 1 and atendimentoBean.atendimento.beneficiario.id != null}">
+                            <p:ajax event="keyup"
+                                    listener="#{atendimentoBean.getEnderecoCep(atendimentoBean.atendimento.beneficiario.endereco)}"
+                                    update="form:messages, logradouro, numero, complemento, bairro, municipio, uf"/>
+                        </p:inputMask>
+                        <p:message for="cep" display="text" showSummary="false"/>
+                    </div>
+                </div>
+                <div class="col-xs-8">
+                    <div class="form-group">
+                        <label for="logradouro">#{i18n.Logradouro}*</label>
+                        <p:inputText id="logradouro" styleClass="form-control"
+                                     value="#{atendimentoBean.atendimento.beneficiario.endereco.logradouro}"
+                                     maxlength="200" required="true"
+                                     disabled="#{atendimentoBean.visualizando or not atendimentoBean.pesquisouCpf or segurancaBean.usuarioLogado.perfil.id != 1 and atendimentoBean.atendimento.beneficiario.id != null}"
+                                     requiredMessage="#{i18n.CampoObrigatorio}"/>
+                        <p:message for="logradouro" display="text" showSummary="false"/>
+                    </div>
+                </div>
+                <div class="col-xs-2">
+                    <div class="form-group">
+                        <label for="numero">#{i18n.Numero}*</label>
+                        <p:inputText id="numero" styleClass="form-control"
+                                     value="#{atendimentoBean.atendimento.beneficiario.endereco.numero}" maxlength="10"
+                                     required="true" requiredMessage="#{i18n.CampoObrigatorio}"
+                                     disabled="#{atendimentoBean.visualizando or not atendimentoBean.pesquisouCpf or segurancaBean.usuarioLogado.perfil.id != 1 and atendimentoBean.atendimento.beneficiario.id != null}"/>
+                        <p:message for="numero" display="text" showSummary="false"/>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="form-group">
+                        <label for="complemento">#{i18n.Complemento}</label>
+                        <p:inputText id="complemento" styleClass="form-control"
+                                     value="#{atendimentoBean.atendimento.beneficiario.endereco.complemento}"
+                                     maxlength="200"
+                                     disabled="#{atendimentoBean.visualizando or not atendimentoBean.pesquisouCpf or segurancaBean.usuarioLogado.perfil.id != 1 and atendimentoBean.atendimento.beneficiario.id != null}"/>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-4">
+                    <div class="form-group">
+                        <label for="bairro">#{i18n.Bairro}*</label>
+                        <p:inputText id="bairro" styleClass="form-control"
+                                     value="#{atendimentoBean.atendimento.beneficiario.endereco.bairro}" maxlength="50"
+                                     required="true" requiredMessage="#{i18n.CampoObrigatorio}"
+                                     disabled="#{atendimentoBean.visualizando or not atendimentoBean.pesquisouCpf or segurancaBean.usuarioLogado.perfil.id != 1 and atendimentoBean.atendimento.beneficiario.id != null}"/>
+                        <p:message for="bairro" display="text" showSummary="false"
+                                   disabled="#{atendimentoBean.visualizando}"/>
+                    </div>
+                </div>
+                <div class="col-xs-4">
+                    <div class="form-group">
+                        <label for="municipio"> #{i18n.Municipio}*</label>
+                        <p:inputText id="municipio" styleClass="form-control"
+                                     value="#{atendimentoBean.atendimento.beneficiario.endereco.cidade}" maxlength="100"
+                                     required="true" requiredMessage="#{i18n.CampoObrigatorio}"
+                                     disabled="#{atendimentoBean.visualizando or not atendimentoBean.pesquisouCpf or segurancaBean.usuarioLogado.perfil.id != 1 and atendimentoBean.atendimento.beneficiario.id != null}"/>
+                        <p:message for="municipio" display="text" showSummary="false"/>
+                    </div>
+                </div>
+                <div class="col-xs-2">
+                    <div class="form-group">
+                        <label for="uf">#{i18n.UF}*</label>
+                        <h:selectOneMenu id="uf" value="#{atendimentoBean.atendimento.beneficiario.endereco.uf}"
+                                         filter="true" filterMatchMode="startsWith" required="true"
+                                         styleClass="form-control"
+                                         requiredMessage="#{i18n.CampoObrigatorio}"
+                                         disabled="#{atendimentoBean.visualizando or not atendimentoBean.pesquisouCpf or segurancaBean.usuarioLogado.perfil.id != 1 and atendimentoBean.atendimento.beneficiario.id != null}">
+                            <f:selectItem itemLabel="#{i18n.Selecione}" itemValue=""/>
+                            <f:selectItems value="#{atendimentoBean.estados}" var="estados"
+                                           itemLabel="#{estados.nome}" itemValue="#{estados.sigla}"/>
+                        </h:selectOneMenu>
+                        <p:message for="uf" display="text" showSummary="false"/>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="form-group">
+                        <label for="email">#{i18n.Email}*</label>
+                        <p:inputText id="email" styleClass="form-control"
+                                     value="#{atendimentoBean.atendimento.beneficiario.email}" maxlength="150"
+                                     validator="EmailValidator"
+                                     disabled="#{atendimentoBean.visualizando or not atendimentoBean.pesquisouCpf}"
+                                     required="true"
+                                     requiredMessage="#{i18n.CampoObrigatorio}"
+                                     validatorMessage="#{i18n.validacaoEmail}"/>
+                        <p:message for="email" display="text" showSummary="false"/>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-2">
+                    <div class="form-group">
+                        <label for="telefone">#{i18n.Telefone}*</label>
+                        <p:inputMask id="telefone" styleClass="form-control"
+                                     value="#{atendimentoBean.atendimento.beneficiario.telefone1}"
+                                     mask="(99)99999-999?9"
+                                     size="15" converter="InputConverter"
+                                     disabled="#{atendimentoBean.visualizando or not atendimentoBean.pesquisouCpf}"
+                                     required="true" requiredMessage="#{i18n.CampoObrigatorio}"/>
+                        <p:message for="telefone" display="text" showSummary="false"/>
+                    </div>
+                </div>
+                <div class="col-xs-2">
+                    <div class="form-group">
+                        <label for="telefone2">#{i18n.Telefone}</label>
+                        <p:inputMask id="telefone2" styleClass="form-control"
+                                     disabled="#{atendimentoBean.visualizando or not atendimentoBean.pesquisouCpf}"
+                                     value="#{atendimentoBean.atendimento.beneficiario.telefone2}"
+                                     mask="(99)99999-999?9"
+                                     size="15" converter="InputConverter"/>
+                    </div>
+                </div>
+                <div class="col-xs-2">
+                    <div class="form-group">
+                        <label for="celular">#{i18n.Celular}*</label>
+                        <p:inputMask id="celular" styleClass="form-control"
+                                     disabled="#{atendimentoBean.visualizando or not atendimentoBean.pesquisouCpf}"
+                                     value="#{atendimentoBean.atendimento.beneficiario.celular}" mask="(99)99999-999?9"
+                                     size="15" converter="InputConverter" required="true"
+                                     requiredMessage="#{i18n.CampoObrigatorio}"/>
+                        <p:message for="celular" display="text" showSummary="false"/>
+                    </div>
+                </div>
+            </div>
+        </p:outputPanel>
+        <p:outputPanel>
+            <div class="row">
+                <div class="col-xs-6">
+                    <div class="form-group">
+                        <p:selectBooleanCheckbox id="alterarDados" value="#{atendimentoBean.atendimento.alterarDados}"/>
+                        <p:outputLabel style="padding-left: 5px" for="alterarDados"
+                                       value="#{i18n.DesejoAtualizarMeusDadosMomentoAtendimento}"/>
+                    </div>
+                </div>
+            </div>
+        </p:outputPanel>
+    </p:outputPanel>
+
+    <p:outputPanel id="pnlCadastroAtendimento"
+                   rendered="#{not atendimentoBean.isRedirecionaTela() and atendimentoBean.confirmouDados and
+                   atendimentoBean.cadastrando}">
+        <div class="row">
+            <div class="col-xs-6">
+                <div class="form-group">
+                    <label for="pontoAtendimento">#{i18n.PontoAtendimento}*</label>
+                    <h:selectOneMenu id="pontoAtendimento" value="#{atendimentoBean.atendimento.pontoAtendimento}"
+                                     filter="true" filterMatchMode="contains" required="true" styleClass="form-control"
+                                     requiredMessage="#{i18n.CampoObrigatorio}" converter="JSFUniversalConverter"
+                                     disabled="#{atendimentoBean.visualizando or not atendimentoBean.pesquisouCpf}">
+                        <f:selectItem itemLabel="#{i18n.Selecione}" itemValue=""/>
+                        <f:selectItems value="#{atendimentoBean.pontoAtendimentos}" var="pontoAtend"
+                                       itemLabel="#{pontoAtend.formatado()}" itemValue="#{pontoAtend}"/>
+                    </h:selectOneMenu>
+                    <p:message for="pontoAtendimento" display="text" showSummary="false"/>
+                </div>
+            </div>
+            <div class="col-xs-6">
+                <div class="form-group">
+                    <label for="tipoAtendimento">#{i18n.TipoAtendimento}*</label>
+                    <h:selectOneMenu id="tipoAtendimento" value="#{atendimentoBean.atendimento.tipoAtendimento}"
+                                     required="true" requiredMessage="#{i18n.CampoObrigatorio}"
+                                     converter="JSFUniversalConverter" styleClass="form-control"
+                                     disabled="#{atendimentoBean.visualizando or not atendimentoBean.pesquisouCpf}">
+                        <f:selectItem itemLabel="#{i18n.Selecione}" itemValue=""/>
+                        <f:selectItems value="#{atendimentoBean.tipoAtendimentos}" var="tipoAtend"
+                                       itemLabel="#{tipoAtend.descricao}" itemValue="#{tipoAtend}"/>
+                    </h:selectOneMenu>
+                    <p:message for="tipoAtendimento" display="text" showSummary="false"/>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-6">
+                <div class="form-group">
+                    <!--<label for="formaAtendimento" >#{i18n.FormaAtendimento}*</label>-->
+                    <h:selectOneMenu id="formaAtendimento" value="#{atendimentoBean.atendimento.formaAtendimento}"
+                                     required="true" requiredMessage="#{i18n.CampoObrigatorio}"
+                                     styleClass="form-control"
+                                     rendered="false">
+                        <f:selectItem itemLabel="#{i18n.Selecione}" itemValue=""/>
+                        <f:selectItems value="#{atendimentoBean.formaAtendimentos}" var="formaAtend"
+                                       itemLabel="#{formaAtend.value}" itemValue="#{formaAtend}"/>
+                        <p:ajax update="data2, agendaItemDisponivel"
+                                listener="#{atendimentoBean.carregaAgendasDisponiveis}" event="change"/>
+                    </h:selectOneMenu>
+                    <p:message for="formaAtendimento" display="text" showSummary="false"/>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-3">
+                <div class="form-group">
+                    <label for="data2">#{i18n.Data}*</label>
+                    <h:selectOneMenu id="data2" value="#{atendimentoBean.dataSelecionada}"
+                                     required="true" requiredMessage="#{i18n.CampoObrigatorio}"
+                                     converter="JSFUniversalConverter" styleClass="form-control"
+                                     disabled="#{atendimentoBean.visualizando or not atendimentoBean.pesquisouCpf or atendimentoBean.atendimento.formaAtendimento == null}">
+                        <f:selectItem itemLabel="#{i18n.Selecione}" itemValue=""/>
+                        <f:selectItems value="#{atendimentoBean.datasDisponiveis}" var="vwDataDisponivel"
+                                       itemLabel="#{vwDataDisponivel.dataFormatada()}"
+                                       itemValue="#{vwDataDisponivel}">
+                        </f:selectItems>
+                        <p:ajax event="change" listener="#{atendimentoBean.verificaCarregaHorariosDisponiveis()}"
+                                update="agendaItemDisponivel"/>
+                    </h:selectOneMenu>
+                    <p:message for="data2" display="text" showSummary="false"/>
+                </div>
+            </div>
+            <div class="col-xs-6">
+                <div class="form-group">
+                    <label for="agendaItemDisponivel">#{i18n.Horario}*</label>
+                    <h:selectOneMenu id="agendaItemDisponivel" value="#{atendimentoBean.horarioSelecionado}"
+                                     required="true" requiredMessage="#{i18n.CampoObrigatorio}"
+                                     converter="JSFUniversalConverter" styleClass="form-control"
+                                     disabled="#{atendimentoBean.visualizando or not atendimentoBean.pesquisouCpf or atendimentoBean.atendimento.formaAtendimento == null}">
+                        <f:selectItem itemLabel="#{i18n.Selecione}" itemValue=""/>
+                        <f:selectItems value="#{atendimentoBean.horariosDisponiveisFiltrado}"
+                                       var="horarioDisponivel"
+                                       itemLabel="#{horarioDisponivel.horarioFormatado()}"
+                                       itemValue="#{horarioDisponivel}">
+                        </f:selectItems>
+                    </h:selectOneMenu>
+                    <p:message for="agendaItemDisponivel" display="text" showSummary="false"/>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-6">
+                <div class="form-group">
+                    <label for="observacao">#{i18n.Observacao}</label>
+                    <p:inputTextarea styleClass="form-control" id="observacao"
+                                     value="#{atendimentoBean.atendimento.observacao}" maxlength="500"
+                                     placeholder="#{i18n.ObservacaoAtendimentoPlaceHolder}"
+                                     disabled="#{atendimentoBean.visualizando or not atendimentoBean.pesquisouCpf}">
+                    </p:inputTextarea>
+                </div>
+            </div>
+        </div>
+
+    </p:outputPanel>
+    <p:outputPanel id="pnlDetalhes"
+                   rendered="#{atendimentoBean.isRedirecionaTela() or atendimentoBean.visualizando}">
+        <div class="row">
+            <div class="col-xs-10">
+                <p class="lead">
+                    <i class="fa fa-list"></i>
+                    #{i18n.DetalhesAgendamento}
+                </p>
+                <div class="table-responsive">
+                    <table class="table">
+                        <tbody>
+                        <tr>
+                            <th class="style:50%">#{i18n.Beneficiario}:</th>
+                            <td>#{atendimentoBean.atendimento.requerente.nome}</td>
+                        </tr>
+                        <tr>
+                            <th>#{i18n.PontoAtendimento}:</th>
+                            <td>#{atendimentoBean.atendimento.pontoAtendimento.formatado()}</td>
+                        </tr>
+                        <tr>
+                            <th>#{i18n.FormaAtendimento}:</th>
+                            <td>#{atendimentoBean.atendimento.formaAtendimento.value}</td>
+                        </tr>
+                        <tr>
+                            <th>#{i18n.TipoAtendimento}:</th>
+                            <td>#{atendimentoBean.atendimento.tipoAtendimento.descricao}</td>
+                        </tr>
+                        <tr>
+                            <th>#{i18n.Data}:</th>
+                            <td>#{atendimentoBean.atendimento.dataExtenso}</td>
+                        </tr>
+                        <tr>
+                            <th>#{i18n.Horario}:</th>
+                            <p:outputPanel
+                                    rendered="#{atendimentoBean.atendimento.horarioInicio != null}">
+                                <td>#{atendimentoBean.atendimento.horarioInicio.horarioFormatado()}</td>
+                            </p:outputPanel>
+                            <p:outputPanel rendered="#{atendimentoBean.atendimento.horarioInicio == null}">
+                                <td>#{atendimentoBean.atendimento.horaNaoAgendadoFormatada()}</td>
+                            </p:outputPanel>
+                        </tr>
+                        <tr>
+                            <th>#{i18n.Situacao}:</th>
+                            <td>#{atendimentoBean.atendimento.situacaoAtendimento.descricao}</td>
+                        </tr>
+                        <tr style="#{atendimentoBean.atendimento.formaAtendimento.id == 2 ? 'display: none' : ''}">
+                            <th>#{i18n.Observacao}:</th>
+                            <td>#{atendimentoBean.atendimento.observacao}</td>
+                        </tr>
+                        <tr>
+                            <th>#{i18n.Senha}:</th>
+                            <td><b>#{atendimentoBean.atendimento.senha}</b></td>
+                        </tr>
+                        <tr>
+                            <p:outputPanel
+                                    rendered="#{atendimentoBean.atendimento.informacoesAtendimento != null and not empty atendimentoBean.atendimento.informacoesAtendimento}">
+                                <th>#{i18n.InformacoesAtendimento}:</th>
+                                <td>#{atendimentoBean.atendimento.informacoesAtendimento}</td>
+                            </p:outputPanel>
+                        </tr>
+                        <tr>
+                            <p:outputPanel
+                                    rendered="#{atendimentoBean.atendimento.situacaoAtendimento.id == 7}">
+                                <th>#{i18n.TempoAtendimento}:</th>
+                                <td>#{atendimentoBean.atendimento.tempoAtendimentoFormatado()}</td>
+                            </p:outputPanel>
+                        </tr>
+
+                        <tr>
+                            <p:outputPanel
+                                    rendered="#{segurancaBean.usuarioLogado.perfil.id == 1 and atendimentoBean.atendimento.situacaoAtendimento.id == 7}">
+                                <th>#{i18n.ResponsavelAtendimento}:</th>
+                                <td>#{atendimentoBean.atendimento.responsavel.nome}</td>
+                            </p:outputPanel>
+                        </tr>
+                        <tr>
+                            <p:outputPanel
+                                    rendered="#{atendimentoBean.atendimento.arquivos != null and atendimentoBean.atendimento.arquivos.size() > 0}">
+                                <th>#{i18n.Arquivos}:</th>
+                                <td>
+                                    <p:outputPanel id="pnlArquivos">
+                                        <div class="table-responsive">
+                                            <p:outputPanel id="pnlArquivosTable"
+                                                           rendered="#{atendimentoBean.atendimento.arquivos != null and atendimentoBean.atendimento.arquivos.size() > 0}">
+                                                <table class="table no-margin">
+                                                    <thead>
+                                                    <tr>
+                                                        <th>#{i18n.Nome}</th>
+                                                        <th style="width: 15%;text-align: center">#{i18n.Acao}</th>
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody>
+
+                                                    <p:repeat
+                                                            value="#{atendimentoBean.atendimento.arquivos}"
+                                                            var="arquivoAgendado">
+                                                        <tr>
+                                                            <td>#{arquivoAgendado.descricao}</td>
+                                                            <td style="text-align: center">
+                                                                <h:commandLink id="ttpVisualizacao"
+                                                                               title="#{i18n.Download}"
+                                                                               action="#{atendimentoBean.downloadArquivo(arquivoAgendado)}"
+                                                                               target="_BLANK" ajax="false"
+                                                                               styleClass="btn btn-circle btn-icon-only default"
+                                                                               immediate="true">
+                                                                    <i class="fas fa-download"/>
+                                                                </h:commandLink>
+                                                            </td>
+                                                        </tr>
+                                                    </p:repeat>
+                                                    </tbody>
+                                                </table>
+                                            </p:outputPanel>
+                                        </div>
+                                    </p:outputPanel>
+                                </td>
+                            </p:outputPanel>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </p:outputPanel>
+
+    <p:outputPanel id="pnlReagendar" rendered="#{not atendimentoBean.isRedirecionaTela() and atendimentoBean.editando}">
+        <div class="row">
+            <div class="col-xs-10">
+                <div class="table-responsive">
+                    <table class="table">
+                        <tbody>
+                        <tr>
+                            <th class="style:50%">#{i18n.Cliente}:</th>
+                            <td>#{atendimentoBean.atendimento.requerente.nome}</td>
+                        </tr>
+                        <tr>
+                            <th>#{i18n.PontoAtendimento}:</th>
+                            <td>#{atendimentoBean.atendimento.pontoAtendimento.formatado()}</td>
+                        </tr>
+                        <tr>
+                            <th>#{i18n.FormaAtendimento}:</th>
+                            <td>#{atendimentoBean.atendimento.formaAtendimento.value}</td>
+                        </tr>
+                        <tr>
+                            <th>#{i18n.Situacao}:</th>
+                            <td>#{atendimentoBean.atendimento.situacaoAtendimento.descricao}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row">
+            <div class="col-xs-8">
+                <div class="form-group">
+                    <label for="reagendarTipoAtendimento">#{i18n.TipoAtendimento}*</label>
+                    <h:selectOneMenu id="reagendarTipoAtendimento" styleClass="form-control"
+                                     value="#{atendimentoBean.atendimento.tipoAtendimento}"
+                                     required="true" requiredMessage="#{i18n.CampoObrigatorio}"
+                                     converter="JSFUniversalConverter">
+                        <f:selectItem itemLabel="#{i18n.Selecione}" itemValue=""/>
+                        <f:selectItems value="#{atendimentoBean.tipoAtendimentos}" var="tipoAtend"
+                                       itemLabel="#{tipoAtend.descricao}" itemValue="#{tipoAtend}"/>
+                    </h:selectOneMenu>
+                    <p:message for="reagendarTipoAtendimento" display="text" showSummary="false"/>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-3">
+                <label>#{i18n.DataAnterior}:</label>
+                <label>#{atendimentoBean.atendimento.dataFormatada()}</label>
+            </div>
+            <div class="col-xs-6">
+                <label>#{i18n.HorarioAnterior}:</label>
+                <label>#{atendimentoBean.atendimento.horarioInicio.horarioFormatado()}</label>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-3">
+                <div class="form-group">
+                    <label for="reagendarData">#{i18n.Data}*</label>
+                    <h:selectOneMenu id="reagendarData" value="#{atendimentoBean.dataSelecionada}"
+                                     required="true" requiredMessage="#{i18n.CampoObrigatorio}"
+                                     converter="JSFUniversalConverter" styleClass="form-control"
+                                     disabled="#{atendimentoBean.atendimento.formaAtendimento == null}">
+                        <f:selectItem itemLabel="#{i18n.Selecione}" itemValue=""/>
+                        <f:selectItems value="#{atendimentoBean.datasDisponiveis}" var="vwDataDisponivel"
+                                       itemLabel="#{vwDataDisponivel.dataFormatada()}"
+                                       itemValue="#{vwDataDisponivel}">
+                        </f:selectItems>
+                        <p:ajax event="change" listener="#{atendimentoBean.verificaCarregaHorariosDisponiveis()}"
+                                update="reagendarHorario"/>
+                    </h:selectOneMenu>
+                    <p:message for="reagendarData" display="text" showSummary="false"/>
+                </div>
+            </div>
+            <div class="col-xs-6">
+                <div class="form-group">
+                    <label for="reagendarHorario">#{i18n.Horario}*</label>
+                    <h:selectOneMenu id="reagendarHorario" value="#{atendimentoBean.horarioSelecionado}"
+                                     required="true" requiredMessage="#{i18n.CampoObrigatorio}"
+                                     converter="JSFUniversalConverter" styleClass="form-control"
+                                     disabled="#{atendimentoBean.atendimento.formaAtendimento == null}">
+                        <f:selectItem itemLabel="#{i18n.Selecione}" itemValue=""/>
+                        <f:selectItems value="#{atendimentoBean.horariosDisponiveisFiltrado}"
+                                       var="horarioDisponivel"
+                                       itemLabel="#{horarioDisponivel.horarioFormatado()}"
+                                       itemValue="#{horarioDisponivel}">
+                        </f:selectItems>
+                    </h:selectOneMenu>
+                    <p:message for="reagendarHorario" display="text" showSummary="false"/>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-6">
+                <div class="form-group">
+                    <label for="reagendarObservacao">#{i18n.Observacao}</label>
+                    <p:inputTextarea styleClass="form-control" id="reagendarObservacao"
+                                     value="#{atendimentoBean.atendimento.observacao}" maxlength="500"
+                                     placeholder="#{i18n.ObservacaoAtendimentoPlaceHolder}">
+                    </p:inputTextarea>
+                </div>
+            </div>
+        </div>
+
+    </p:outputPanel>
+    <p:confirmDialog message="#{i18n.ConfirmacaoCancelarAtendimento}" width="500" header="#{i18n.Cancelar}"
+                     severity="alert" widgetVar="confirmation" closeOnEscape="true">
+        <p:outputPanel id="pnlCancelamento">
+            <div class="row">
+                <div class="col-xs-6">
+                    <label>
+                        #{i18n.TipoAtendimento}
+                    </label>
+                </div>
+                <div class="col-xs-6">
+                    <label>
+                        #{i18n.DataHorario}
+                    </label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-6">
+                    #{atendimentoBean.atendimento.tipoAtendimento.descricao}
+                </div>
+                <div class="col-xs-6">
+                    #{atendimentoBean.atendimento.dataFormatada()}
+                    <br/>
+                    #{atendimentoBean.atendimento.horarioInicio.horarioFormatado()}
+                </div>
+            </div>
+            <br/>
+            <p:commandButton value="#{i18n.Sim}" onclick="PF('confirmation').hide();"
+                             actionListener="#{atendimentoBean.excluir}" immediate="true" ajax="true"
+                             process="@this"
+                             update="form:pnlContent"/>
+            <p:commandButton value="#{i18n.Nao}" onclick="PF('confirmation').hide();return false;" ajax="false"
+                             immediate="true"/>
+        </p:outputPanel>
+    </p:confirmDialog>
+    <h:outputScript>
+        //<![CDATA[
+        var specialDays = new Array(#{fn:join(atendimentoBean.getSpecialDays(), ',')});
+
+        function carregaDatas() {
+            specialDays = new Array(#{fn:join(atendimentoBean.getSpecialDays(), ',')});
+        }
+
+        function datasDisponiveis(date) {
+            for (var i = 0; i < specialDays.length; i++) {
+                var sDate = new Date(specialDays[i]);
+                var compare1 = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                var compare2 = new Date(sDate.getFullYear(), sDate.getMonth(), sDate.getDate() + 1);
+                if (compare1.getTime() == compare2.getTime()) {
+                    return [true, ''];
+                }
+            }
+            return [false, ''];
+        };
+        //]]>
+    </h:outputScript>
+</ui:composition>

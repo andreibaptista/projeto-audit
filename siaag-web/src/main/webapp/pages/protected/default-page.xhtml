@@ -1,0 +1,62 @@
+<ui:composition 
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:f="http://xmlns.jcp.org/jsf/core"
+    xmlns:h="http://xmlns.jcp.org/jsf/html"
+    xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui">
+	<!-- Content Header (Page header) -->
+	
+	<!-- Main content -->
+	<section class="content">
+        <br/>
+        <div style="padding-left: 1%;max-width: 99%">
+            <h3>#{i18n.Atendimento}</h3>
+            <div class="row">
+                <div class="col-lg-3 col-xs-6">
+                    <!-- small box -->
+                    <div class="small-box bg-aqua">
+                        <div class="inner">
+                            <h3>Novo</h3>
+
+                            <p>atendimento</p>
+                        </div>
+                        <div class="icon">
+                            <i class="ion-plus-round"></i>
+                        </div>
+                        <p:commandLink styleClass="small-box-footer" action="#{segurancaBean.trocarItemMenu('FormAtendimento')}" update="pnlContent">
+                            <f:actionListener binding="#{atendimentoBean.novo()}"/>
+                            <f:setPropertyActionListener value="true" target="#{segurancaBean.cadastro}"/>
+                            Acessar
+                            <i
+                                    class="fa fa-arrow-circle-right"></i>
+                        </p:commandLink>
+                        <!--<a href="#" class="small-box-footer">Acessar <i
+                                class="fa fa-arrow-circle-right"></i></a>-->
+                    </div>
+                </div>
+                <!-- ./col -->
+                <div class="col-lg-3 col-xs-6">
+                    <!-- small box -->
+                    <div class="small-box bg-green">
+                        <div class="inner">
+                            <h3>Consultar</h3>
+
+                            <p>atendimento</p>
+                        </div>
+                        <div class="icon">
+                            <i class="ion ion-search"></i>
+                        </div>
+                        <p:commandLink styleClass="small-box-footer" action="#{segurancaBean.trocarItemMenu('FormAtendimento')}" update="pnlContent" onclick="selecionaMenu('menuAtendimento')">
+                            <f:actionListener binding="#{atendimentoBean.posContructor()}"/>
+                            <f:setPropertyActionListener value="false" target="#{segurancaBean.cadastro}"/>
+                            Acessar
+                            <i
+                                    class="fa fa-arrow-circle-right"></i>
+                        </p:commandLink>
+                    </div>
+                </div>
+                <!-- ./col -->
+            </div>
+        </div>
+	</section><!-- /.content -->
+</ui:composition>

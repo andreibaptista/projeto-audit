@@ -1,0 +1,3 @@
+server:
+  context-path: /siaag
+  port: 9090

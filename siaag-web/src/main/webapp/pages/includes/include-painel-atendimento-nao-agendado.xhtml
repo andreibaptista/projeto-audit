@@ -1,0 +1,507 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:p="http://primefaces.org/ui">
+
+    <p:outputPanel id="pnlListaNaoAgendado" rendered="#{(segurancaBean.usuarioLogado.perfil.id == 1 or painelAtendimentoBean.atendeAtendimentoNaoAgendado) and painelAtendimentoBean.listando and not painelAtendimentoBean.cadastrandoNaoAgendado}">
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="info-box">
+                    <p:commandLink actionListener="#{painelAtendimentoBean.novoNaoAgendado()}" update="form:pnlContent"
+                                   immediate="true">
+                        <span class="info-box-icon bg-yellow"><i class="far fa-address-card"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-number">#{i18n.IniciarAtendimentoNaoAgendado}</span>
+                        </div>
+                        <!-- /.info-box-content -->
+                    </p:commandLink>
+                </div>
+                <!-- /.info-box -->
+            </div>
+        </div>
+
+        <div class="box box-warning">
+            <div class="box-header with-border">
+                <i class="far fa-address-card"></i>
+                <h3 class="box-title">#{i18n.NaoAgendado}</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="box-body">
+                <div class="table-responsive">
+                    <table class="table no-margin">
+                        <thead>
+                        <tr>
+                            <th>#{i18n.Senha}</th>
+                            <th>#{i18n.TipoAtendimentoBeneficario}</th>
+                            <th>#{i18n.Situacao}</th>
+                            <th>#{i18n.Controles}</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <p:repeat value="#{painelAtendimentoBean.atendimentosNaoAgendados}"
+                                  var="atendimentoNaoAgendado">
+                            <tr style="#{atendimentoNaoAgendado.situacaoAtendimento.id == 3 ? 'color: grey' : atendimentoNaoAgendado.situacaoAtendimento.id == 7 ? 'color: #00a65a' : 'color: #3c8dbc;'}">
+                                <td>#{atendimentoNaoAgendado.senha}</td>
+                                <td><b>#{atendimentoNaoAgendado.tipoAtendimento.descricao}</b>
+                                    <br/>
+                                    #{atendimentoNaoAgendado.beneficiario.nome}
+                                </td>
+                                <td><span
+                                        class="label label-success">#{atendimentoNaoAgendado.situacaoAtendimento.descricao}</span>
+                                </td>
+                                <td>
+                                    <p:commandLink
+                                            actionListener="#{painelAtendimentoBean.visualizar(atendimentoNaoAgendado)}"
+                                            update="form:pnlContent"
+                                            styleClass="btn btn-default">
+                                        <span>#{i18n.Detalhes}</span>
+                                    </p:commandLink>
+                                </td>
+                            </tr>
+                        </p:repeat>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div><!-- /.content-wrapper -->
+    </p:outputPanel>
+    <p:outputPanel rendered="#{(segurancaBean.usuarioLogado.perfil.id == 1 or painelAtendimentoBean.atendeAtendimentoNaoAgendado) and painelAtendimentoBean.cadastrandoNaoAgendado}">
+        <div class="box box-warning">
+            <div class="box-header with-border">
+                <i class="far fa-address-card"></i>
+                <h3 class="box-title">#{i18n.NaoAgendado}</h3>
+            </div>
+
+            <div class="box-body">
+                <p:outputPanel id="pnlPainelNaoAgendado"
+                               rendered="#{painelAtendimentoBean.cadastrandoNaoAgendado or painelAtendimentoBean.proximoNaoAgendado}">
+
+
+                    <div class="callout callout-success"
+                         style="background-color: #8f8f8f !important;border-color: #777 !important;">
+                        <div class="row">
+                            <div class="col-xs-4">
+                                <div class="form-group">
+                                    <label>#{i18n.Senha}* </label>
+                                    <p:inputMask id="senhaNaoAgendado" mask="9?9999" styleClass="form-control"
+                                                 style="width: 75px"
+                                                 value="#{painelAtendimentoBean.atendimento.senha}"
+                                                 converter="InputConverter"
+                                                 disabled="#{painelAtendimentoBean.proximoNaoAgendado}"
+                                                 required="true" requiredMessage="#{i18n.CampoObrigatorio}">
+                                    </p:inputMask>
+                                    <p:message for="senhaNaoAgendado" display="text" showSummary="false"/>
+
+                                    <br/>
+                                    <p:selectBooleanCheckbox id="atendimentoPrioritario" value="#{painelAtendimentoBean.atendimento.prioritario}"
+                                                             disabled="#{painelAtendimentoBean.proximoNaoAgendado}"/>
+                                    <h:outputLabel for="atendimentoPrioritario" style="padding-left: 5px" value="#{i18n.AtendimentoPrioritario}"/>
+                                </div>
+                            </div>
+                            <p:commandLink actionListener="#{painelAtendimentoBean.proximoNaoAgendado()}"
+                                           update="form:pnlContent"
+                                           rendered="#{not painelAtendimentoBean.proximoNaoAgendado}">
+                                <button class="btn btn-primary pull-right">#{i18n.Proximo}</button>
+                            </p:commandLink>
+                            <p:commandLink actionListener="#{painelAtendimentoBean.gravar()}" update="form:pnlContent"
+                                           rendered="#{painelAtendimentoBean.proximoNaoAgendado}">
+                                <button class="btn btn-success pull-right">#{i18n.EncerrarAtendimento}</button>
+                            </p:commandLink>
+                            <p:commandLink actionListener="#{painelAtendimentoBean.cancelar()}" process="@this"
+                                           ajax="true" rendered="#{not painelAtendimentoBean.proximoNaoAgendado}"
+                                           update="form:pnlContent">
+                                <button class="btn btn-default pull-right">#{i18n.Cancelar}</button>
+                            </p:commandLink>
+
+                            <p:commandLink actionListener="#{painelAtendimentoBean.voltar()}" process="@this"
+                                           update="form:pnlContent" rendered="#{painelAtendimentoBean.proximoNaoAgendado}">
+                                <button class="btn btn-default pull-right">#{i18n.Voltar}</button>
+                            </p:commandLink>
+                        </div>
+                        <label>#{i18n.TempoAtendimento}: </label>
+                        <p:outputLabel id="tempoAtendimentoNaoAgendado"
+                                       value="#{painelAtendimentoBean.atendimento.tempoAtendimentoFormatado()}"/>
+                        <p:poll interval="1" listener="#{painelAtendimentoBean.incrementaTempoAtendimento()}"
+                                update="tempoAtendimentoNaoAgendado" process="@this" global="false"/>
+                    </div>
+                </p:outputPanel>
+
+                <p:outputPanel id="pnlCadastroNaoAgendado"
+                               rendered="#{painelAtendimentoBean.cadastrandoNaoAgendado and not painelAtendimentoBean.proximoNaoAgendado}">
+                    <p:outputPanel id="pnlDetalhesNaoAgendado">
+                        <div class="row">
+                            <div class="col-xs-10">
+                                <p class="lead">
+                                    <i class="fa fa-list"></i>
+                                    #{i18n.Detalhes}
+                                </p>
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <tbody>
+                                        <tr>
+                                            <th class="style:50%">#{i18n.PontoAtendimento}</th>
+                                            <td>#{painelAtendimentoBean.atendimento.pontoAtendimento.formatado()}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>#{i18n.TipoAtendimento}*</th>
+                                            <td>
+                                                <h:selectOneMenu id="tipoAtendimentoNaoAgendado"
+                                                                 value="#{painelAtendimentoBean.atendimento.tipoAtendimento}"
+                                                                 required="true" styleClass="form-control"
+                                                                 requiredMessage="#{i18n.CampoObrigatorio}"
+                                                                 converter="JSFUniversalConverter">
+                                                    <f:selectItem itemLabel="#{i18n.Selecione}" itemValue=""/>
+                                                    <f:selectItems value="#{painelAtendimentoBean.tipoAtendimentos}"
+                                                                   var="tipoAtendimento"
+                                                                   itemLabel="#{tipoAtendimento.descricao}"
+                                                                   itemValue="#{tipoAtendimento}">
+                                                    </f:selectItems>
+                                                </h:selectOneMenu>
+                                                <p:message for="tipoAtendimentoNaoAgendado" display="text"
+                                                           showSummary="false"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>#{i18n.Situacao}</th>
+                                            <td>#{painelAtendimentoBean.atendimento.situacaoAtendimento.descricao}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>#{i18n.Arquivos}</th>
+                                            <td>
+                                                <p:outputPanel id="pnlFileUploadNaoAgendado">
+                                                    <p:fileUpload
+                                                            fileUploadListener="#{painelAtendimentoBean.handleFileUpload}"
+                                                            auto="true"
+                                                            mode="advanced"
+                                                            dragDropSupport="true"
+                                                            label="#{i18n.Selecione}"
+                                                            sizeLimit="5000000"
+                                                            fileLimit="1"
+                                                            allowTypes="/(\.|\/)(jpe?g|png|pdf|txt|doc|docx|xls)$/"
+                                                            oncomplete="adicionarDocumento()"
+                                                            invalidFileMessage="#{i18n.TipoDocumentoInvalido}"
+                                                            invalidSizeMessage="#{i18n.TamanhoArquivoInvalido}"/>
+
+                                                    <p:remoteCommand name="adicionarDocumento"
+                                                                     actionListener="#{painelAtendimentoBean.adicionarArquivo()}"
+                                                                     process="@this"
+                                                                     update="form:pnlArquivosNaoAgendado, form:pnlFileUploadNaoAgendado, form:pnlArquivosTableNaoAgendado"
+                                                                     ajax="true"/>
+                                                </p:outputPanel>
+                                                <p:outputPanel id="pnlArquivosNaoAgendado">
+                                                    <div class="table-responsive">
+                                                        <p:outputPanel id="pnlArquivosTableNaoAgendado"
+                                                                       rendered="#{painelAtendimentoBean.atendimento.arquivos != null and painelAtendimentoBean.atendimento.arquivos.size() > 0}">
+                                                            <h4><b>#{i18n.ArquivosAdicionados}</b></h4>
+                                                            <table class="table no-margin">
+                                                                <thead>
+                                                                <tr>
+                                                                    <th>#{i18n.Nome}</th>
+                                                                    <th style="width: 15%;text-align: center">#{i18n.Acao}</th>
+                                                                </tr>
+                                                                </thead>
+                                                                <tbody>
+
+                                                                <p:repeat
+                                                                        value="#{painelAtendimentoBean.atendimento.arquivos}"
+                                                                        var="arquivoNaoAgendado">
+                                                                    <tr>
+                                                                        <td>#{arquivoNaoAgendado.descricao}</td>
+                                                                        <td style="text-align: center">
+                                                                            <h:commandLink id="ttpVisualizacao"
+                                                                                           title="#{i18n.Download}"
+                                                                                           action="#{painelAtendimentoBean.downloadArquivo(arquivoNaoAgendado)}"
+                                                                                           target="_BLANK" ajax="false"
+                                                                                           styleClass="btn btn-circle btn-icon-only default"
+                                                                                           immediate="true">
+                                                                                <i class="fas fa-download"/>
+                                                                            </h:commandLink>
+                                                                            <p:commandLink
+                                                                                    onclick="PF('confirmation_arquivo').show();"
+                                                                                    global="false" ajax="true"
+                                                                                    process="@this"
+                                                                                    styleClass="btn btn-circle btn-icon-only default">
+                                                                                <i class="fa fa-trash"/> <span></span>
+                                                                                <f:setPropertyActionListener
+                                                                                        target="#{painelAtendimentoBean.arquivo}"
+                                                                                        value="#{arquivoNaoAgendado}"/>
+                                                                            </p:commandLink>
+                                                                        </td>
+                                                                    </tr>
+                                                                </p:repeat>
+                                                                </tbody>
+                                                            </table>
+                                                        </p:outputPanel>
+                                                    </div>
+                                                </p:outputPanel>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>#{i18n.InformacoesAtendimento}*</th>
+                                            <td>
+                                                <p:inputTextarea styleClass="form-control"
+                                                                 id="informacoesAtendimentoNaoAgendado" required="true"
+                                                                 maxlength="1000"
+                                                                 requiredMessage="#{i18n.CampoObrigatorio}"
+                                                                 value="#{painelAtendimentoBean.atendimento.informacoesAtendimento}"/>
+                                                <p:message for="informacoesAtendimentoNaoAgendado" display="text"
+                                                           showSummary="false"/>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </p:outputPanel>
+                </p:outputPanel>
+
+                <p:outputPanel id="pnlCadastroNaoAgendado2"
+                               rendered="#{painelAtendimentoBean.cadastrandoNaoAgendado and painelAtendimentoBean.proximoNaoAgendado}">
+                    <div class="row">
+                        <div class="col-xs-10">
+                            <p class="lead">
+                                #{i18n.AtualizacaoDadosPessoais}
+                            </p>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <tbody>
+                                    <tr>
+                                        <th class="style:50%">#{i18n.CPF}*</th>
+                                        <td>
+                                            <p:inputMask id="cpfNaoAgendado" styleClass="form-control"
+                                                         value="#{painelAtendimentoBean.atendimento.beneficiario.cpf}"
+                                                         mask="999.999.999-99"
+                                                         converter="InputConverter" validator="CPFCNPJValidator"
+                                                         required="true"
+                                                         requiredMessage="#{i18n.CampoObrigatorio}">
+                                                <p:ajax event="keyup"
+                                                        update="form:messages,msgCpfNaoAgendado, nomeNaoAgendado, dataNascimentoNaoAgendado, cepNaoAgendado, ufNaoAgendado,logradouroNaoAgendado, numeroNaoAgendado, complementoNaoAgendado, bairroNaoAgendado, municipioNaoAgendado, ufNaoAgendado, emailNaoAgendado, telefoneNaoAgendado, telefoneNaoAgendado2,celularNaoAgendado"
+                                                        listener="#{painelAtendimentoBean.buscaPessoaAtendimento(painelAtendimentoBean.atendimento.beneficiario.cpf)}"/>
+                                            </p:inputMask>
+                                            <p:message id="msgCpfNaoAgendado" for="cpfNaoAgendado" display="text"
+                                                       showSummary="false"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>#{i18n.Nome}*</th>
+                                        <td>
+                                            <p:inputText styleClass="form-control" id="nomeNaoAgendado"
+                                                         value="#{painelAtendimentoBean.atendimento.beneficiario.nome}"
+                                                         required="true"
+                                                         validator="NomeValidator"
+                                                         requiredMessage="#{i18n.CampoObrigatorio}" maxlength="150"
+                                                         disabled="#{not painelAtendimentoBean.pesquisouCpf}">
+                                            </p:inputText>
+                                            <p:message for="nomeNaoAgendado" id="msgNome" display="text"
+                                                       showSummary="false"
+                                                       showDetail="true"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>#{i18n.DataNascimento}*</th>
+                                        <td>
+                                            <p:calendar id="dataNascimentoNaoAgendado" label="#{i18n.DataNascimento}"
+                                                        pattern="dd/MM/yyyy"
+                                                        value="#{painelAtendimentoBean.atendimento.beneficiario.dataNascimento}"
+                                                        mask="99/99/9999" required="true"
+                                                        mindate="#{painelAtendimentoBean.minDate()}"
+                                                        maxdate="#{painelAtendimentoBean.currentDate()}"
+                                                        navigator="true" yearRange="c-150:c+150"
+                                                        locale="pt_BR" requiredMessage="#{i18n.CampoObrigatorio}"
+                                                        validator="DataNascimentoValidator"
+                                                        disabled="#{not painelAtendimentoBean.pesquisouCpf}">
+                                            </p:calendar>
+                                            <p:message for="dataNascimentoNaoAgendado" display="text"
+                                                       showSummary="false"
+                                                       showDetail="true"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>#{i18n.Cep}*</th>
+                                        <td>
+                                            <p:inputMask id="cepNaoAgendado" styleClass="form-control"
+                                                         value="#{painelAtendimentoBean.atendimento.beneficiario.endereco.cep}"
+                                                         mask="99999-999" size="10" converter="InputConverter"
+                                                         required="true" requiredMessage="#{i18n.CampoObrigatorio}"
+                                                         disabled="#{not painelAtendimentoBean.pesquisouCpf}">
+                                                <p:ajax event="keyup"
+                                                        listener="#{painelAtendimentoBean.getEnderecoCep(painelAtendimentoBean.atendimento.beneficiario.endereco)}"
+                                                        update="form:messages, logradouroNaoAgendado, complementoNaoAgendado, bairroNaoAgendado, municipioNaoAgendado"/>
+                                            </p:inputMask>
+                                            <p:message for="cepNaoAgendado" display="text"
+                                                       showSummary="false"
+                                                       showDetail="true"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>#{i18n.Logradouro}*</th>
+                                        <td>
+                                            <p:inputText id="logradouroNaoAgendado" styleClass="form-control"
+                                                         value="#{painelAtendimentoBean.atendimento.beneficiario.endereco.logradouro}"
+                                                         maxlength="200" required="true"
+                                                         requiredMessage="#{i18n.CampoObrigatorio}"
+                                                         disabled="#{not painelAtendimentoBean.pesquisouCpf}"
+                                            />
+                                            <p:message for="logradouroNaoAgendado" display="text"
+                                                       showSummary="false"
+                                                       showDetail="true"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>#{i18n.Numero}*</th>
+                                        <td>
+                                            <p:inputText id="numeroNaoAgendado" styleClass="form-control"
+                                                         value="#{painelAtendimentoBean.atendimento.beneficiario.endereco.numero}"
+                                                         maxlength="10" required="true"
+                                                         requiredMessage="#{i18n.CampoObrigatorio}"
+                                                         disabled="#{not painelAtendimentoBean.pesquisouCpf}"/>
+                                            <p:message for="numeroNaoAgendado" display="text"
+                                                       showSummary="false"
+                                                       showDetail="true"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>#{i18n.Complemento}</th>
+                                        <td>
+                                            <p:inputText id="complementoNaoAgendado" styleClass="form-control"
+                                                         value="#{painelAtendimentoBean.atendimento.beneficiario.endereco.complemento}"
+                                                         maxlength="200"
+                                                         disabled="#{not painelAtendimentoBean.pesquisouCpf}"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>#{i18n.Bairro}*</th>
+                                        <td>
+                                            <p:inputText id="bairroNaoAgendado" styleClass="form-control"
+                                                         value="#{painelAtendimentoBean.atendimento.beneficiario.endereco.bairro}"
+                                                         maxlength="50" required="true"
+                                                         requiredMessage="#{i18n.CampoObrigatorio}"
+                                                         disabled="#{not painelAtendimentoBean.pesquisouCpf}"
+                                            />
+                                            <p:message for="bairroNaoAgendado" display="text"
+                                                       showSummary="false"
+                                                       showDetail="true"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>#{i18n.Municipio}*</th>
+                                        <td>
+                                            <p:inputText id="municipioNaoAgendado" styleClass="form-control"
+                                                         value="#{painelAtendimentoBean.atendimento.beneficiario.endereco.cidade}"
+                                                         maxlength="100" required="true"
+                                                         requiredMessage="#{i18n.CampoObrigatorio}"
+                                                         disabled="#{not painelAtendimentoBean.pesquisouCpf}"/>
+                                            <p:message for="municipioNaoAgendado" display="text"
+                                                       showSummary="false"
+                                                       showDetail="true"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>#{i18n.UF}*</th>
+                                        <td>
+                                            <h:selectOneMenu id="ufNaoAgendado"
+                                                             value="#{painelAtendimentoBean.atendimento.beneficiario.endereco.uf}"
+                                                             filter="true" filterMatchMode="startsWith"
+                                                             styleClass="form-control" required="true"
+                                                             requiredMessage="#{i18n.CampoObrigatorio}"
+                                                             disabled="#{not painelAtendimentoBean.pesquisouCpf}">
+                                                <f:selectItem itemLabel="#{i18n.Selecione}" itemValue=""/>
+                                                <f:selectItems value="#{painelAtendimentoBean.estados}" var="estados"
+                                                               itemLabel="#{estados.nome}"
+                                                               itemValue="#{estados.sigla}"/>
+                                            </h:selectOneMenu>
+                                            <p:message for="ufNaoAgendado" display="text"
+                                                       showSummary="false"
+                                                       showDetail="true"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>#{i18n.Email}*</th>
+                                        <td>
+                                            <p:inputText id="emailNaoAgendado" styleClass="form-control"
+                                                         value="#{painelAtendimentoBean.atendimento.beneficiario.email}"
+                                                         maxlength="150" required="true"
+                                                         requiredMessage="#{i18n.CampoObrigatorio}"
+                                                         disabled="#{not painelAtendimentoBean.pesquisouCpf}"
+                                                         validator="EmailValidator"
+                                                         validatorMessage="#{i18n.validacaoEmail}"/>
+                                            <p:message for="emailNaoAgendado" display="text" showSummary="false"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>#{i18n.Telefone}*</th>
+                                        <td>
+                                            <p:inputMask id="telefoneNaoAgendado" styleClass="form-control"
+                                                         value="#{painelAtendimentoBean.atendimento.beneficiario.telefone1}"
+                                                         mask="(99)99999-999?9" required="true"
+                                                         requiredMessage="#{i18n.CampoObrigatorio}"
+                                                         disabled="#{not painelAtendimentoBean.pesquisouCpf}"
+                                                         size="15" converter="InputConverter"/>
+                                            <p:message for="telefoneNaoAgendado" display="text"
+                                                       showSummary="false"
+                                                       showDetail="true"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>#{i18n.Telefone}</th>
+                                        <td>
+                                            <p:inputMask id="telefoneNaoAgendado2" styleClass="form-control"
+                                                         value="#{painelAtendimentoBean.atendimento.beneficiario.telefone2}"
+                                                         mask="(99)99999-999?9"
+                                                         disabled="#{not painelAtendimentoBean.pesquisouCpf}"
+                                                         size="15" converter="InputConverter"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>#{i18n.Celular}*</th>
+                                        <td>
+                                            <p:inputMask id="celularNaoAgendado" styleClass="form-control"
+                                                         value="#{painelAtendimentoBean.atendimento.beneficiario.celular}"
+                                                         mask="(99)99999-999?9" required="true"
+                                                         requiredMessage="#{i18n.CampoObrigatorio}"
+                                                         disabled="#{not painelAtendimentoBean.pesquisouCpf}"
+                                                         size="15" converter="InputConverter"/>
+                                            <p:message for="celularNaoAgendado" display="text"
+                                                       showSummary="false"
+                                                       showDetail="true"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>#{i18n.TipoBeneficiario}*</th>
+                                        <td>
+                                            <p:selectOneRadio id="tipoBeneficiarioNaoAgendado"
+                                                              value="#{painelAtendimentoBean.atendimento.tipoBeneficiario}"
+                                                              required="true" converter="JSFUniversalConverter"
+                                                              requiredMessage="#{i18n.CampoObrigatorio}">
+                                                <f:selectItems value="#{painelAtendimentoBean.tipoBeneficiarios}"
+                                                               var="tpBeneficiario"
+                                                               itemLabel="#{tpBeneficiario.descricao}"
+                                                               itemValue="#{tpBeneficiario}"/>
+                                            </p:selectOneRadio>
+                                            <p:message for="tipoBeneficiarioNaoAgendado" display="text"
+                                                       showSummary="false"/>
+                                        </td>
+                                    </tr>
+
+
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </p:outputPanel>
+
+            </div>
+        </div>
+    </p:outputPanel>
+</ui:composition>

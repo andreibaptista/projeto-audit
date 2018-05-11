@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:pe="http://primefaces.org/ui/extensions"
+      xmlns:p="http://primefaces.org/ui">
+
+<h:head>
+    <title>SIAAG</title>
+    <!-- Bootstrap core CSS -->
+
+    <link rel="stylesheet" type="text/css"
+          href="#{request.contextPath}/resources/bootstrap/css/bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css"
+          href="#{request.contextPath}/resources/dist/css/AdminLTE.min.css"/>
+    <link rel="stylesheet" type="text/css"
+          href="#{request.contextPath}/resources/dist/css/skins/skin-blue.min.css"/>
+
+    <link rel="stylesheet" href="#{request.contextPath}/resources/dist/css/skins/_all-skins.min.css"/>
+
+    <script src="https://pagead2.googlesyndication.com/pub-config/r20160913/ca-pub-4495360934352473.js"/>
+
+
+    <link rel="stylesheet" type="text/css"
+          href="#{request.contextPath}/resources/default.css"/>
+
+    <h:outputScript library="js" name="locale-primefaces.js"/>
+</h:head>
+<h:body class="hold-transition skin-blue sidebar-mini">
+    <script type="text/javascript">
+        var mytime;
+
+        function display_c(start) {
+            window.start = parseFloat(start);
+            var end = 0; // change this to stop the counter at a higher value
+            var refresh = 1000; // Refresh rate in milli seconds
+            if (window.start >= end) {
+                mytime = setTimeout('display_ct()', refresh)
+            } else {
+                var labelMsgStatusDialog = document.getElementById('msgStatusDialog');
+                labelMsgStatusDialog.hidden = false;
+            }
+        }
+
+        function display_ct() {
+            // Calculate the number of days left
+            var days = Math.floor(window.start / 86400);
+            // After deducting the days calculate the number of hours left
+            var hours = Math.floor((window.start - (days * 86400)) / 3600)
+            // After days and hours , how many minutes are left
+            var minutes = Math.floor((window.start - (days * 86400) - (hours * 3600)) / 60)
+            // Finally how many seconds left after removing days, hours and minutes.
+            var secs = Math.floor((window.start - (days * 86400) - (hours * 3600) - (minutes * 60)))
+
+            var x = window.start + "(" + days + " Days " + hours + " Hours " + minutes + " Minutes and " + secs + " Seconds " + ")";
+
+            //document.getElementById('ct').innerHTML = x;
+            window.start = window.start - 1;
+
+            tt = display_c(window.start);
+        }
+
+        function stop() {
+            clearTimeout(mytime);
+        }
+
+        var t;
+
+        function startTimer() {
+            t = setTimeout("PF('statusDialog').show()", 1100);
+            stop();
+            display_c(5);
+        }
+
+        function stopTimer() {
+            clearTimeout(t);
+            var labelMsgStatusDialog = document.getElementById('msgStatusDialog');
+            labelMsgStatusDialog.hidden = true;
+        }
+
+        function resetLocalStorage() {
+            localStorage.clear();
+        }
+    </script>
+    <p:ajaxStatus onstart="startTimer();"
+                  onsuccess="PF('statusDialog').hide(); stopTimer();"
+                  onerror="PF('errorDialog').show(); stopTimer(); PF('statusDialog').hide()"/>
+
+    <p:dialog modal="true" widgetVar="statusDialog" header="#{i18n.Carregando}"
+              draggable="true" closable="false" position="center">
+        <p:graphicImage styleClass="centralizar-imagem" value="/resources/img/loading-cascade.gif"/>
+        <br/>
+        <label id="msgStatusDialog" hidden="true">#{i18n.ServidorEstaSofrendoComInstabilidadeIssoPodeDemorar}</label>
+    </p:dialog>
+    <p:dialog modal="true" widgetVar="errorDialog" position="center"
+              header="#{i18n.OcorreuUmErro}" draggable="false" closable="false">
+        #{i18n.PressioneF5RecarregarPagina}
+    </p:dialog>
+
+    <h:form id="form" enctype="multipart/form-data">
+        <div>
+            <!-- Main Header -->
+            <header class="main-header">
+                <ui:include src="/pages/template/header-public.xhtml"/>
+            </header>
+            <br/><br/>
+            <!-- Content Wrapper. Contains page content -->
+            <div id="box" style="padding-left: 1%">
+                <div class="box box-primary">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">Cadastro de Usuário</h3>
+                    </div>
+                    <div class="box-body">
+                        <p:messages id="messages" closable="true" showIcon="false" showSummary="false" showDetail="true"
+                                    globalOnly="true"/>
+                        <div class="row">
+                            <div class="col-xs-3">
+                                <div class="form-group">
+                                    <label for="cpf">#{i18n.CPF}*</label>
+                                    <p:inputMask id="cpf" styleClass="form-control"
+                                                 value="#{usuarioExternoBean.usuario.pessoa.cpf}" mask="999.999.999-99"
+                                                 converter="InputConverter" validator="CPFCNPJValidator"
+                                                 required="true" autocomplete="false"
+                                                 requiredMessage="#{i18n.CampoObrigatorio}">
+                                    </p:inputMask>
+                                    <p:message for="cpf" display="text" showSummary="false"/>
+                                </div>
+
+                            </div>
+                            <div class="col-xs-4">
+                                <div class="form-group">
+                                    <label for="senha">#{i18n.Senha}*</label>
+                                    <p:password id="senha" styleClass="form-control"
+                                                value="#{usuarioExternoBean.usuario.senha}" required="true"
+                                                maxlength="50"
+                                                requiredMessage="#{i18n.CampoObrigatorio}"
+                                                validatorMessage="#{i18n.validacaoSenhaMenor6Caracteres}">
+                                        <f:validateLength minimum="6"/>
+                                        <p:ajax update="msgSenha" event="keyup"/>
+                                    </p:password>
+                                    <p:message for="senha" id="msgSenha" display="text" showSummary="false"
+                                               showDetail="true"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-6">
+                                <div class="form-group">
+                                    <label for="nome">#{i18n.Nome}*</label>
+                                    <p:inputText styleClass="form-control" id="nome"
+                                                 value="#{usuarioExternoBean.usuario.pessoa.nome}" required="true"
+                                                 validator="NomeValidator"
+                                                 requiredMessage="#{i18n.CampoObrigatorio}" maxlength="150">
+                                    </p:inputText>
+                                    <p:message for="nome" id="msgNome" display="text" showSummary="false"
+                                               showDetail="true"/>
+                                </div>
+                            </div>
+                            <div class="col-xs-2">
+                                <div class="form-group">
+                                    <label for="dataNascimento">#{i18n.DataNascimento}*</label>
+                                    <p:calendar id="dataNascimento" label="#{i18n.DataNascimento}"
+                                                pattern="dd/MM/yyyy"
+                                                value="#{usuarioExternoBean.usuario.pessoa.dataNascimento}"
+                                                required="true"
+                                                mask="99/99/9999"
+                                                mindate="#{usuarioExternoBean.minDate()}"
+                                                maxdate="#{usuarioExternoBean.currentDate()}" navigator="true"
+                                                locale="pt_BR" requiredMessage="#{i18n.CampoObrigatorio}"
+                                                validator="DataNascimentoValidator">
+                                    </p:calendar>
+                                    <p:message for="dataNascimento" display="text" showSummary="false"
+                                               showDetail="true"/>
+                                </div>
+                            </div>
+                        </div>
+                        <!--ENDERECO -->
+                        <div class="row">
+                            <div class="col-xs-2">
+                                <div class="form-group">
+                                    <label for="cep"> #{i18n.Cep}*</label>
+                                    <p:inputMask id="cep" styleClass="form-control"
+                                                 value="#{usuarioExternoBean.usuario.pessoa.endereco.cep}"
+                                                 mask="99999-999" size="10" converter="InputConverter" required="true"
+                                                 requiredMessage="#{i18n.CampoObrigatorio}">
+                                        <p:ajax event="keyup"
+                                                listener="#{usuarioExternoBean.getEnderecoCep(usuarioExternoBean.usuario.pessoa.endereco)}"
+                                                update="logradouro, complemento, bairro, municipio, uf, messages"/>
+                                    </p:inputMask>
+                                    <p:message for="cep" display="text" showSummary="false"/>
+                                </div>
+                            </div>
+                            <div class="col-xs-8">
+                                <div class="form-group">
+                                    <label for="logradouro">#{i18n.Logradouro}*</label>
+                                    <p:inputText id="logradouro" styleClass="form-control"
+                                                 value="#{usuarioExternoBean.usuario.pessoa.endereco.logradouro}"
+                                                 maxlength="200" required="true"
+                                                 requiredMessage="#{i18n.CampoObrigatorio}"/>
+                                    <p:message for="logradouro" display="text" showSummary="false"/>
+                                </div>
+                            </div>
+                            <div class="col-xs-2">
+                                <div class="form-group">
+                                    <label for="numero">#{i18n.Numero}*</label>
+                                    <p:inputText id="numero" styleClass="form-control"
+                                                 value="#{usuarioExternoBean.usuario.pessoa.endereco.numero}"
+                                                 maxlength="10"
+                                                 required="true" requiredMessage="#{i18n.CampoObrigatorio}"/>
+                                    <p:message for="numero" display="text" showSummary="false"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <div class="form-group">
+                                    <label for="complemento">#{i18n.Complemento}</label>
+                                    <p:inputText id="complemento" styleClass="form-control"
+                                                 value="#{usuarioExternoBean.usuario.pessoa.endereco.complemento}"
+                                                 maxlength="200"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-4">
+                                <div class="form-group">
+                                    <label for="bairro">#{i18n.Bairro}*</label>
+                                    <p:inputText id="bairro" styleClass="form-control"
+                                                 value="#{usuarioExternoBean.usuario.pessoa.endereco.bairro}"
+                                                 maxlength="50"
+                                                 required="true" requiredMessage="#{i18n.CampoObrigatorio}"/>
+                                    <p:message for="bairro" display="text" showSummary="false"/>
+                                </div>
+                            </div>
+                            <div class="col-xs-4">
+                                <div class="form-group">
+                                    <label for="municipio"> #{i18n.Municipio}*</label>
+                                    <p:inputText id="municipio" styleClass="form-control"
+                                                 value="#{usuarioExternoBean.usuario.pessoa.endereco.cidade}"
+                                                 maxlength="100"
+                                                 required="true" requiredMessage="#{i18n.CampoObrigatorio}"/>
+                                    <p:message for="municipio" display="text" showSummary="false"/>
+                                </div>
+                            </div>
+                            <div class="col-xs-2">
+                                <label for="uf">#{i18n.UF}*</label>
+                                <div class="form-group">
+                                    <h:selectOneMenu id="uf" value="#{usuarioExternoBean.usuario.pessoa.endereco.uf}"
+                                                     styleClass="form-control"
+                                                     filter="true" filterMatchMode="startsWith" required="true"
+                                                     requiredMessage="#{i18n.CampoObrigatorio}">
+                                        <f:selectItem itemLabel="#{i18n.Selecione}" itemValue=""/>
+                                        <f:selectItems value="#{usuarioExternoBean.estados}" var="estados"
+                                                       itemLabel="#{estados.nome}" itemValue="#{estados.sigla}"/>
+                                    </h:selectOneMenu>
+                                    <p:message for="uf" display="text" showSummary="false"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <div class="form-group">
+                                    <label for="email">#{i18n.Email}*</label>
+                                    <p:inputText id="email" styleClass="form-control"
+                                                 value="#{usuarioExternoBean.usuario.pessoa.email}" maxlength="150"
+                                                 validator="EmailValidator"
+                                                 requiredMessage="#{i18n.CampoObrigatorio}"
+                                                 validatorMessage="#{i18n.validacaoEmail}"/>
+                                    <p:message for="email" display="text" showSummary="false"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-2">
+                                <div class="form-group">
+                                    <label for="telefone">#{i18n.Telefone}*</label>
+                                    <p:inputMask id="telefone" styleClass="form-control"
+                                                 value="#{usuarioExternoBean.usuario.pessoa.telefone1}"
+                                                 mask="(99)99999-999?9"
+                                                 size="15" converter="InputConverter"
+                                                 required="true" requiredMessage="#{i18n.CampoObrigatorio}"/>
+                                    <p:message for="telefone" display="text" showSummary="false"/>
+                                </div>
+                            </div>
+                            <div class="col-xs-2">
+                                <div class="form-group">
+                                    <label for="telefone2">#{i18n.Telefone}</label>
+                                    <p:inputMask id="telefone2" styleClass="form-control"
+                                                 value="#{usuarioExternoBean.usuario.pessoa.telefone2}"
+                                                 mask="(99)99999-999?9"
+                                                 size="15" converter="InputConverter"/>
+                                </div>
+                            </div>
+                            <div class="col-xs-2">
+                                <div class="form-group">
+                                    <label for="celular">#{i18n.Celular}*</label>
+                                    <p:inputMask id="celular" styleClass="form-control"
+                                                 value="#{usuarioExternoBean.usuario.pessoa.celular}"
+                                                 mask="(99)99999-999?9"
+                                                 size="15" converter="InputConverter" required="true"
+                                                 requiredMessage="#{i18n.CampoObrigatorio}"/>
+                                    <p:message for="celular" display="text" showSummary="false"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box-footer">
+                        <p:commandLink immediate="true" actionListener="#{usuarioExternoBean.redirect('/siaag/login')}"
+                                       onclick="resetLocalStorage()">
+                            <button class="btn btn-default">#{i18n.Voltar}</button>
+                        </p:commandLink>
+
+                        <p:commandLink actionListener="#{usuarioExternoBean.salvar()}" update="@form"
+                                       onclick="resetLocalStorage()">
+                            <button class="btn btn-success pull-right">#{i18n.Salvar}</button>
+                        </p:commandLink>
+                    </div>
+                </div><!-- /.content-wrapper -->
+            </div>
+        </div><!-- ./wrapper -->
+    </h:form>
+
+    <script type="text/javascript">
+        $('form').off('keypress.disableAutoSubmitOnEnter').on('keypress.disableAutoSubmitOnEnter', function (event) {
+            if (event.which === $.ui.keyCode.ENTER) {
+                if ($(event.target).is(':input:not(textarea,:button,:submit,:reset)')) {
+                    event.preventDefault();
+                }
+            }
+        });
+    </script>
+
+    <!-- REQUIRED JS SCRIPTS -->
+    <script type="text/javascript"
+            src="#{request.contextPath}/resources/bootstrap/js/bootstrap.min.js"></script> <!-- Correio -->
+    <script type="text/javascript" src="#{request.contextPath}/resources/dist/js/app.min.js"></script> <!-- Correio -->
+</h:body>
+
+</html>

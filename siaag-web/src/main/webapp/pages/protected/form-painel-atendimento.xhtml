@@ -1,0 +1,198 @@
+<ui:composition
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+        xmlns:p="http://primefaces.org/ui"
+        xmlns:h="http://java.sun.com/jsf/html">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <h1>
+            #{i18n.PainelAtendimento}
+        </h1>
+        <br/>
+        <i class="fas fa-calendar"></i><label
+            style="padding-left: 5px; font-weight: normal">#{painelAtendimentoBean.currentDatePorExtenso()}</label><br/>
+        <i class="fas fa-map-marker"></i><label
+            style="padding-left: 5px; font-weight: normal">#{segurancaBean.usuarioLogado.pontoAtendimentoSetor != null and
+            segurancaBean.usuarioLogado.pontoAtendimentoSetor.pontoAtendimento != null and
+            segurancaBean.usuarioLogado.pontoAtendimentoSetor.pontoAtendimento.id != null ? segurancaBean.usuarioLogado.pontoAtendimentoSetor.pontoAtendimento.nome : ''}</label>
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+        <ui:include src="../includes/include-painel-atendimento-nao-agendado.xhtml"/>
+
+        <ui:include src="../includes/include-painel-atendimento-agendado.xhtml"/>
+
+        <p:outputPanel id="pnlDetalhesPainel"
+                       rendered="#{painelAtendimentoBean.visualizando}">
+            <div class="box box-primary">
+
+                <div class="box-header with-border">
+                    <i class="#{painelAtendimentoBean.atendimento.formaAtendimento eq 'AGENDADO' ? 'far fa-calendar-check' : 'far fa-address-card'}"></i>
+                    <h3 class="box-title">#{painelAtendimentoBean.atendimento.formaAtendimento eq 'AGENDADO' ? i18n.Agendado : i18n.NaoAgendado}</h3>
+                </div>
+                <div class="box-body">
+                    <div class="callout callout-success"
+                         style="background-color: #8f8f8f !important;border-color: #777 !important;">
+                        <div class="row">
+                            <div class="col-xs-4">
+                                <div class="form-group">
+                                    <label>#{painelAtendimentoBean.atendimento.formaAtendimento eq 'AGENDADO' ? painelAtendimentoBean.atendimento.dataAtendimentoAgendadoFormatado() : painelAtendimentoBean.atendimento.dataAtendimentoNaoAgendadoFormatado()}</label>
+                                </div>
+                            </div>
+                            <p:commandLink type="button" process="@this" ajax="true"
+                                           update="form:pnlContent">
+                                <button class="btn btn-primary pull-right"
+                                        onclick="PrintElem('form:pnlDetalhes')">#{i18n.Imprimir}</button>
+                                <!--<p:printer target="pnlDetalhes"/>-->
+                            </p:commandLink>
+                            <p:commandLink actionListener="#{painelAtendimentoBean.cancelar()}" process="@this"
+                                           ajax="true"
+                                           update="form:pnlContent">
+                                <button class="btn btn-default pull-right">#{i18n.Voltar}</button>
+                            </p:commandLink>
+
+                        </div>
+                    </div>
+
+                    <p:outputPanel id="pnlDetalhes">
+                        <div class="row">
+                            <div class="col-xs-10">
+                                <p class="lead">
+                                    <i class="fa fa-list"></i>
+                                    #{i18n.Detalhes}
+                                </p>
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <tbody>
+                                        <tr>
+                                            <th class="style:50%">#{i18n.Beneficiario}:</th>
+                                            <td>#{painelAtendimentoBean.atendimento.requerente.nome}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>#{i18n.PontoAtendimento}:</th>
+                                            <td>#{painelAtendimentoBean.atendimento.pontoAtendimento.formatado()}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>#{i18n.FormaAtendimento}:</th>
+                                            <td>#{painelAtendimentoBean.atendimento.formaAtendimento.value}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>#{i18n.TipoAtendimento}:</th>
+                                            <td>#{painelAtendimentoBean.atendimento.tipoAtendimento.descricao}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>#{i18n.Data}:</th>
+                                            <td>#{painelAtendimentoBean.atendimento.dataExtenso}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>#{i18n.Horario}:</th>
+                                            <p:outputPanel
+                                                    rendered="#{painelAtendimentoBean.atendimento.horarioInicio != null}">
+                                                <td>#{painelAtendimentoBean.atendimento.horarioInicio.horarioFormatado()}</td>
+                                            </p:outputPanel>
+                                            <p:outputPanel
+                                                    rendered="#{painelAtendimentoBean.atendimento.horarioInicio == null}">
+                                                <td>#{painelAtendimentoBean.atendimento.horaNaoAgendadoFormatada()}</td>
+                                            </p:outputPanel>
+                                        </tr>
+                                        <tr>
+                                            <th>#{i18n.Situacao}:</th>
+                                            <td>#{painelAtendimentoBean.atendimento.situacaoAtendimento.descricao}</td>
+                                        </tr>
+                                        <tr style="#{painelAtendimentoBean.atendimento.formaAtendimento.id == 2 ? 'display: none' : ''}">
+                                            <th>#{i18n.Observacao}:</th>
+                                            <td>#{painelAtendimentoBean.atendimento.observacao}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>#{i18n.Senha}:</th>
+                                            <td><b>#{painelAtendimentoBean.atendimento.senha}</b></td>
+                                        </tr>
+                                        <tr>
+                                            <p:outputPanel
+                                                    rendered="#{painelAtendimentoBean.atendimento.informacoesAtendimento != null and not empty painelAtendimentoBean.atendimento.informacoesAtendimento}">
+                                                <th>#{i18n.InformacoesAtendimento}:</th>
+                                                <td>#{painelAtendimentoBean.atendimento.informacoesAtendimento}</td>
+                                            </p:outputPanel>
+                                        </tr>
+                                        <tr>
+                                            <p:outputPanel
+                                                    rendered="#{painelAtendimentoBean.atendimento.situacaoAtendimento.id == 7}">
+                                                <th>#{i18n.TempoAtendimento}:</th>
+                                                <td>#{painelAtendimentoBean.atendimento.tempoAtendimentoFormatado()}</td>
+                                            </p:outputPanel>
+                                        </tr>
+
+                                        <tr>
+                                            <p:outputPanel
+                                                    rendered="#{segurancaBean.usuarioLogado.perfil.id == 1 and painelAtendimentoBean.atendimento.situacaoAtendimento.id == 7}">
+                                                <th>#{i18n.ResponsavelAtendimento}:</th>
+                                                <td>#{painelAtendimentoBean.atendimento.responsavel.nome}</td>
+                                            </p:outputPanel>
+                                        </tr>
+                                        <tr>
+                                            <p:outputPanel
+                                                    rendered="#{painelAtendimentoBean.atendimento.arquivos != null and painelAtendimentoBean.atendimento.arquivos.size() > 0}">
+                                                <th>#{i18n.Arquivos}:</th>
+                                                <td>
+                                                    <p:outputPanel id="pnlArquivos">
+                                                        <div class="table-responsive">
+                                                            <p:outputPanel id="pnlArquivosTable"
+                                                                           rendered="#{painelAtendimentoBean.atendimento.arquivos != null and painelAtendimentoBean.atendimento.arquivos.size() > 0}">
+                                                                <table class="table no-margin">
+                                                                    <thead>
+                                                                    <tr>
+                                                                        <th>#{i18n.Nome}</th>
+                                                                        <th style="width: 15%;text-align: center">#{i18n.Acao}</th>
+                                                                    </tr>
+                                                                    </thead>
+                                                                    <tbody>
+
+                                                                    <p:repeat
+                                                                            value="#{painelAtendimentoBean.atendimento.arquivos}"
+                                                                            var="arquivoAgendado">
+                                                                        <tr>
+                                                                            <td>#{arquivoAgendado.descricao}</td>
+                                                                            <td style="text-align: center">
+                                                                                <h:commandLink id="ttpVisualizacao"
+                                                                                               title="#{i18n.Download}"
+                                                                                               action="#{painelAtendimentoBean.downloadArquivo(arquivoAgendado)}"
+                                                                                               target="_BLANK"
+                                                                                               ajax="false"
+                                                                                               styleClass="btn btn-circle btn-icon-only default"
+                                                                                               immediate="true">
+                                                                                    <i class="fas fa-download"/>
+                                                                                </h:commandLink>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </p:repeat>
+                                                                    </tbody>
+                                                                </table>
+                                                            </p:outputPanel>
+                                                        </div>
+                                                    </p:outputPanel>
+                                                </td>
+                                            </p:outputPanel>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </p:outputPanel>
+
+                </div>
+            </div>
+        </p:outputPanel>
+
+        <p:confirmDialog message="#{i18n.ConfirmacaoExclusao}" width="400" header="#{i18n.DialogExcluir}"
+                         severity="alert" widgetVar="confirmation_arquivo">
+            <p:commandButton value="#{i18n.Sim}" onclick="PF('confirmation_arquivo').hide();"
+                             actionListener="#{painelAtendimentoBean.excluirArquivo}" immediate="true" ajax="true"
+                             process="@this"
+                             update="form:pnlContent"/>
+            <p:commandButton value="#{i18n.Nao}" onclick="PF('confirmation_arquivo').hide();return false;" ajax="false"
+                             immediate="true"/>
+        </p:confirmDialog>
+    </section><!-- /.content -->
+</ui:composition>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:pe="http://primefaces.org/ui/extensions"
+      xmlns:p="http://primefaces.org/ui">
+
+<h:head>
+    <title>#{i18n.SIAAGNomeCompleto}</title>
+    <link rel="icon" href="favicon.png" type="img/png"/>
+
+    <link rel="stylesheet" type="text/css"
+          href="#{request.contextPath}/resources/bootstrap/css/bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css"
+          href="#{request.contextPath}/resources/dist/css/AdminLTE.min.css"/>
+    <link rel="stylesheet" type="text/css"
+          href="#{request.contextPath}/resources/dist/css/skins/skin-blue.min.css"/>
+
+    <link rel="stylesheet" href="#{request.contextPath}/resources/dist/css/skins/_all-skins.min.css"/>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css"/>
+    <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css"/>
+
+    <script src="https://pagead2.googlesyndication.com/pub-config/r20160913/ca-pub-4495360934352473.js"></script>
+    <h:outputScript library="js" name="locale-primefaces.js"/>
+
+    <meta http-equiv="Content-Type" content="text/html;"/>
+    <script type="text/javascript">
+        function up(lstr) { // converte minusculas em maiusculas
+            var str = lstr.value; //obtem o valor
+            lstr.value = str.toUpperCase(); //converte as strings e retorna ao campo
+        }
+
+        function handleComplete(xhr, status, args) {//Vai ao inicio da pagina apenas quando houver erro
+            if (args.validationFailed || args.error) {
+                $('xhtml, body').animate({scrollTop: 0}, 'slow');
+            }
+        }
+
+        function handleIrInicioPagina() {//Sempre vai ao inicio na pagina
+            $('xhtml, body').animate({scrollTop: 0}, 'slow');
+        }
+    </script>
+</h:head>
+
+<h:body class="hold-transition skin-blue sidebar-mini">
+    <h:form id="form" enctype="multipart/form-data">
+        <div class="wrapper">
+            <p:ajaxStatus onstart="PF('statusDialog').show();"
+                          onsuccess="PF('statusDialog').hide();"/>
+
+            <p:dialog header="#{i18n.Carregando}" modal="true" widgetVar="statusDialog"
+                      position="center" width="300" draggable="false" closable="false"
+                      resizable="false">
+                <h:panelGrid columns="1" width="100%" style="text-align:center;">
+                    <p:graphicImage value="/resources/img/ajaxLoadingBar.gif"/>
+                </h:panelGrid>
+            </p:dialog>
+
+            <header class="main-header">
+                <ui:include src="/pages/template/header.xhtml"/>
+            </header>
+            <aside class="main-sidebar">
+                <ui:include src="/pages/template/aside.xhtml"/>
+            </aside>
+            <div id="container">
+                <div class="content-wrapper">
+                    <ui:insert name="conteudo">
+                        <br/>
+                        <div style="padding-left: 1%;max-width: 99%">
+                            <h3>#{i18n.Agendamento}</h3>
+                            <div class="row">
+                                <div class="col-lg-3 col-xs-6">
+                                    <!-- small box -->
+                                    <div class="small-box bg-aqua">
+                                        <div class="inner">
+                                            <h3>Novo</h3>
+
+                                            <p>agendamento</p>
+                                        </div>
+                                        <div class="icon">
+                                            <i class="ion-plus-round"></i>
+                                        </div>
+                                        <a href="#" class="small-box-footer">Acessar <i
+                                                class="fa fa-arrow-circle-right"></i></a>
+                                    </div>
+                                </div>
+                                <!-- ./col -->
+                                <div class="col-lg-3 col-xs-6">
+                                    <!-- small box -->
+                                    <div class="small-box bg-green">
+                                        <div class="inner">
+                                            <h3>Consultar</h3>
+
+                                            <p>agendamento</p>
+                                        </div>
+                                        <div class="icon">
+                                            <i class="ion ion-search"></i>
+                                        </div>
+                                        <a href="#" class="small-box-footer">Acessar <i
+                                                class="fa fa-arrow-circle-right"></i></a>
+                                    </div>
+                                </div>
+                                <!-- ./col -->
+                                <div class="col-lg-3 col-xs-6">
+                                    <!-- small box -->
+                                    <div class="small-box bg-yellow">
+                                        <div class="inner">
+                                            <h3>Reagendar</h3>
+
+                                            <p>agendamento</p>
+                                        </div>
+                                        <div class="icon">
+                                            <i class="ion ion-android-calendar"></i>
+                                        </div>
+                                        <a href="#" class="small-box-footer">Acessar <i
+                                                class="fa fa-arrow-circle-right"></i></a>
+                                    </div>
+                                </div>
+                                <!-- ./col -->
+                                <div class="col-lg-3 col-xs-6">
+                                    <!-- small box -->
+                                    <div class="small-box bg-red">
+                                        <div class="inner">
+                                            <h3>Cancelar</h3>
+
+                                            <p>agendamento</p>
+                                        </div>
+                                        <div class="icon">
+                                            <i class="ion ion-close-round"></i>
+                                        </div>
+                                        <a href="#" class="small-box-footer">Acessar <i
+                                                class="fa fa-arrow-circle-right"></i></a>
+                                    </div>
+                                </div>
+                                <!-- ./col -->
+                            </div>
+                        </div>
+
+
+
+
+
+                    </ui:insert>
+                </div>
+            </div>
+            <footer class="main-footer">
+                <ui:include src="/pages/template/footer.xhtml"/>
+            </footer>
+        </div>
+    </h:form>
+</h:body>
+</html>

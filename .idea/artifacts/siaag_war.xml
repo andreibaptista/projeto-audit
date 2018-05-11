@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="siaag:war">
+    <output-path>$PROJECT_DIR$/siaag-web/target</output-path>
+    <root id="archive" name="siaag-1.0.1-6.war">
+      <element id="artifact" artifact-name="siaag:war exploded" />
+    </root>
+  </artifact>
+</component>

@@ -1,0 +1,165 @@
+#!groovy​
+
+node() {
+    // Propriedades do job
+    // numToKeepStr - quantidades de builds que serao guardadas
+    properties([buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '',
+            daysToKeepStr: '', numToKeepStr: "${env.QUANTIDADE_BUILDS}")), pipelineTriggers([])])
+
+    // Ferramentas necessarias
+    def mvnHome = tool 'Maven 3.3.9'
+    def git = tool 'git'
+
+    // Limpando todo workspace, clonando e mudando pra branch especifica
+    stage('limpeza e checkout') {
+        sh "rm -rf *"
+        sh "rm -rf .git"
+        checkout scm
+        sh "${git} checkout ${env.BRANCH_NAME}"
+    }
+
+    // Lendo e carregando o pom.xml da raiz e outras variaveis
+    def pom = readMavenPom file: "pom.xml"
+    def profile = ("${env.BRANCH_NAME}" == "master") ? "producao" : "${env.BRANCH_NAME}"
+    def slackChannel = "#dev-java"
+    def mensagemPadraoSlack = "Projeto *`${pom.artifactId}`*, branch: *`${env.BRANCH_NAME}`*, build <${env.BUILD_URL}|(${env.BUILD_NUMBER})>"
+    def novaVersao = ""
+
+    try {
+        // Execucao dos testes e validacao da build
+        stage('testes e construcao') {
+            slackSend   color: "#439FE0",
+                    channel: "${slackChannel}",
+                    message: "${mensagemPadraoSlack} iniciou!"
+            sh "${mvnHome}/bin/mvn -B verify -P${profile}"
+        }
+
+        // Versionando o projeto, le a versao do pom.xml da raiz e altera com a nova versao acrescentando o numero da build
+        stage('versionamento') {
+            def major = "${pom.version}".split("\\.")[0]
+            def minor = "${pom.version}".split("\\.")[1]
+            novaVersao = "${major}.${minor}.${env.BUILD_NUMBER}"
+            sh "${mvnHome}/bin/mvn -B versions:set -DgenerateBackupPoms=false -DnewVersion=${novaVersao}"
+            sh "${mvnHome}/bin/mvn -B clean install -DskipTests -P${profile}"
+
+            // Gerando uma nova tag quando o push for na branch master
+            if ("master" == env.BRANCH_NAME) {
+                sh "${git} add -A"
+                sh "${git} commit -m 'Incrementando para versão ${novaVersao}'"
+                sh "${git} tag v${novaVersao}"
+                sh "${git} push origin v${novaVersao}"
+            }
+        }
+
+        // Deploy no Weblogic apenas de desenvolvimento
+        stage('deploy e arquivamento') {
+
+            def artifactId = "${pom.artifactId}"
+            String warPath = "target/${pom.artifactId}-${novaVersao}.war"
+
+            // Verifica se um projeto multi-modulos
+            if (fileExists(file: "${pom.artifactId}-api/pom.xml")) {
+                def pomApi = readMavenPom file: "${pom.artifactId}-api/pom.xml"
+                artifactId = "${pomApi.artifactId}"
+                warPath = "${pomApi.artifactId}/target/${pomApi.artifactId}-${novaVersao}.war"
+            }
+            def valorDeRetorno = "0"
+            // Realizando deploy se nao for producao
+            if ("master" != env.BRANCH_NAME) {
+
+                String weblogicIP = ("homologacao" == env.BRANCH_NAME) ? "${env.WEBLOGIC_IP_HOM}" : "${env.WEBLOGIC_IP_DEV}"
+                String target = ("homologacao" == env.BRANCH_NAME) ? "${pom.artifactId}" : "Server-1"
+                def comandoBasicoWeblogic = "java -cp ${env.WEBLOGIC_CP} weblogic.Deployer -adminurl ${weblogicIP} " +
+                        " -userconfigfile ${env.WEBLOGIC_CONFIG_FILE} -userkeyfile ${env.WEBLOGIC_KEY_FILE} -timeout ${env.WEBLOGIC_TIMEOUT} "
+
+                // Usa o comando listapps para gravar no arquivo weblogic.txt todas as aplicacoes que existem no weblogic
+                valorDeRetorno = sh(script: "${comandoBasicoWeblogic} -listapps > weblogic.txt", returnStatus: true)
+                if ("0" != "${valorDeRetorno}") {
+                    error("Ocorreu um erro durante a lista das aplicações no Weblogic!")
+                }
+                def weblogicApps = readFile file: "weblogic.txt"
+                def versao = numeroVersaoAposentada(artifactId, weblogicApps)
+                if (versao != null) {
+                    echo "Realizando undeploy da versao: ${versao}..."
+                    valorDeRetorno = sh(script: "${comandoBasicoWeblogic} -undeploy -name ${artifactId} -appversion ${versao} " +
+                            " -targets ${target}", returnStatus: true)
+                    if ("0" != "${valorDeRetorno}") {
+                        error("Ocorreu um erro durante o undeploy das versão anterior! Comando sh retornou: ${valorDeRetorno}")
+                    }
+                }
+                sh "rm weblogic.txt;sleep 5" // Remove o arquivo weblogic.txt e aguarda 5 segundos
+                echo "Realizando deploy do arquivo war COM versionamento do Weblogic"
+                valorDeRetorno = sh(script: "${comandoBasicoWeblogic} -upload -deploy -remote -verbose " +
+                        " -name ${artifactId} -source ${warPath} -targets ${target}", returnStatus: true)
+
+                if ("0" != "${valorDeRetorno}") {
+                    error("Ocorreu um erro durante o deploy do war! Comando sh retornou: ${valorDeRetorno}")
+                }
+
+                // Deploy do modulo Extranet UI
+                if (fileExists(file: "${pom.artifactId}-extranet-ui/pom.xml")) {
+                    echo "Realizando deploy do módulo Extranet UI..."
+                    def pomUI = readMavenPom file: "${pom.artifactId}-extranet-ui/pom.xml"
+                    String uiPath = "${pom.artifactId}-extranet-ui/WebContent"
+                    valorDeRetorno = sh(script: "${comandoBasicoWeblogic} -upload -deploy -remote -verbose -noversion " +
+                            " -name ${pomUI.artifactId} -source ${uiPath} -targets ${target}", returnStatus: true)
+                    if ("0" != "${valorDeRetorno}") {
+                        error("Ocorreu um erro durante o deploy do módulo UI! Comando sh retornou: ${valorDeRetorno}")
+                    }
+                }
+                // Deploy do modulo Intranet UI
+                if (fileExists(file: "${pom.artifactId}-intranet-ui/pom.xml")) {
+                    echo "Realizando deploy do módulo Intranet UI..."
+                    def pomUI = readMavenPom file: "${pom.artifactId}-intranet-ui/pom.xml"
+                    String uiPath = "${pom.artifactId}-intranet-ui/WebContent"
+                    valorDeRetorno = sh(script: "${comandoBasicoWeblogic} -upload -deploy -remote -verbose -noversion " +
+                            " -name ${pomUI.artifactId} -source ${uiPath} -targets ${target}", returnStatus: true)
+                    if ("0" != "${valorDeRetorno}") {
+                        error("Ocorreu um erro durante o deploy do módulo UI! Comando sh retornou: ${valorDeRetorno}")
+                    }
+                }
+            } // final if != master
+            archive warPath
+            if (fileExists(file: "${pom.artifactId}-extranet-ui/pom.xml")) {
+                echo "Criando zip do módulo UI"
+                zip archive: true, dir: "${pom.artifactId}-extranet-ui", glob: '', zipFile: "${pom.artifactId}-extranet-ui-${novaVersao}.zip"
+            }
+            if (fileExists(file: "${pom.artifactId}-intranet-ui/pom.xml")) {
+                echo "Criando zip do módulo UI"
+                zip archive: true, dir: "${pom.artifactId}-intranet-ui", glob: '', zipFile: "${pom.artifactId}-intranet-ui-${novaVersao}.zip"
+            }
+        } // final stage
+
+        slackSend color: "good",
+                channel: "${slackChannel}",
+                message: "${mensagemPadraoSlack} concluída!"
+    } // final try
+    catch (exc) {
+        echo "Excecao: ${exc}"
+        slackSend color: "danger",
+                channel: "${slackChannel}",
+                message: "${mensagemPadraoSlack} falhou!"
+
+        // Envia email caso o ambiente seja producao
+        if ("master" == env.BRANCH_NAME) {
+            mail subject: "Projeto: ${pom.artifactId}, branch: ${env.BRANCH_NAME}, build: ${env.BUILD_NUMBER} falhou!",
+                    body: "Jenkins CI informa: Build ${env.BUILD_URL} falhou, o time responsável pelo projeto deve verificar! Erro: ${exc}",
+                    to: "${env.EMAIL_NOTIFICACAO_FALHA}",
+                    from: 'noreply.jenkins@igeprev.pa.gov.br',
+                    charset: "UTF-8"
+        }
+        throw exc
+    } // final catch
+} // final node
+
+// Varre o arquivo e retorna a versao nao ACTIVE, ou seja, a RETIRED
+def numeroVersaoAposentada(artifactId, file) {
+    String[] apps = file.split("\n")
+    def versao = null
+    for (int i = 0; i < apps.length; i++) {
+        if (apps[i].trim().startsWith("${artifactId} [Version=") && apps[i].endsWith("]")) {
+            versao = apps[i].substring(apps[i].indexOf("=") + 1, apps[i].length() - 1)
+        }
+    }
+    versao
+}
